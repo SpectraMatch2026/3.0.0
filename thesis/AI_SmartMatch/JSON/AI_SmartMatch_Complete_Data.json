@@ -1,0 +1,188 @@
+{
+  "report_id": "SPEC_260327_213226",
+  "session_id": "",
+  "alignment_mode": "ai_smart_match",
+  "duration_seconds": 26.69,
+  "overall_scores": {
+    "color_score": 100.0,
+    "pattern_score": 99.50106083564833,
+    "overall_score": 99.75053041782417,
+    "decision": "ACCEPT"
+  },
+  "color_analysis": {
+    "delta_e_2000": {
+      "mean": 0,
+      "std": 0,
+      "min": 0,
+      "max": 0
+    },
+    "delta_e_76": {
+      "mean": 0,
+      "std": 0,
+      "min": 0,
+      "max": 0
+    },
+    "delta_e_94": {
+      "mean": 0,
+      "std": 0,
+      "min": 0,
+      "max": 0
+    },
+    "csi_score": 0,
+    "color_similarity_percentage": 0
+  },
+  "pattern_analysis": {
+    "ssim": {
+      "score": 0,
+      "mean": 0,
+      "std": 0
+    },
+    "gradient": {
+      "score": 0,
+      "similarity": 0
+    },
+    "phase": {
+      "score": 0,
+      "correlation": 0
+    },
+    "structural": {
+      "score": 0,
+      "match": 0
+    },
+    "glcm_features": {},
+    "fft_metrics": {}
+  },
+  "tables": {
+    "rgb_values": {},
+    "cmyk_values": {},
+    "lab_values": {},
+    "xyz_values": {},
+    "sampling_points": [],
+    "illuminant_analysis": {}
+  },
+  "statistics": {
+    "image_dimensions": {
+      "width": 0,
+      "height": 0
+    },
+    "processing_time": 0,
+    "alignment_quality": {},
+    "region_info": {}
+  },
+  "settings": {
+    "operator": "Operator",
+    "timezone_offset": 3,
+    "report_lang": "en",
+    "alignment_mode": "ai_smart_match",
+    "enable_color_unit": true,
+    "enable_pattern_unit": true,
+    "enable_pattern_repetition": false,
+    "color_scoring_method": "delta_e",
+    "color_threshold_pass": 2,
+    "color_threshold_conditional": 5,
+    "global_threshold_de": 5,
+    "region_count": 5,
+    "csi_good": 90,
+    "csi_warn": 70,
+    "primary_illuminant": "D65",
+    "test_illuminants": [
+      "D65",
+      "D50",
+      "TL84"
+    ],
+    "pattern_scoring_method": "all",
+    "ssim_pass": 85,
+    "ssim_cond": 70,
+    "grad_pass": 85,
+    "grad_cond": 70,
+    "phase_pass": 85,
+    "phase_cond": 70,
+    "structural_pass": 85,
+    "structural_cond": 70,
+    "global_pattern_threshold": 75,
+    "section_color_spaces": true,
+    "section_rgb": true,
+    "section_lab": true,
+    "section_xyz": true,
+    "section_cmyk": true,
+    "section_diff_metrics": true,
+    "section_stats": true,
+    "section_detailed_lab": true,
+    "section_visualizations": true,
+    "section_spectral": true,
+    "section_visual_diff": true,
+    "enable_ssim": true,
+    "enable_gradient": true,
+    "enable_phase": true,
+    "enable_structural": true,
+    "enable_fourier": true,
+    "enable_glcm": true,
+    "enable_grad_bound": true,
+    "enable_phase_bound": true,
+    "enable_summary": true,
+    "enable_concl": true,
+    "enable_rec": true,
+    "thresholds": {
+      "pass": 2,
+      "conditional": 5,
+      "Structural SSIM": {
+        "pass": 85,
+        "conditional": 70
+      },
+      "Gradient Similarity": {
+        "pass": 85,
+        "conditional": 70
+      },
+      "Phase Correlation": {
+        "pass": 85,
+        "conditional": 70
+      },
+      "Structural Match": {
+        "pass": 85,
+        "conditional": 70
+      }
+    },
+    "csi_thresholds": {
+      "good": 90,
+      "warn": 70
+    },
+    "global_threshold": 75,
+    "sections": {
+      "color_spaces": true,
+      "rgb": true,
+      "lab": true,
+      "xyz": true,
+      "cmyk": true,
+      "diff_metrics": true,
+      "stats": true,
+      "detailed_lab": true,
+      "visualizations": true,
+      "spectral": true,
+      "histograms": true,
+      "visual_diff": true,
+      "csi_under_heatmap": false,
+      "illuminant_analysis": true,
+      "recommendations_color": true,
+      "ssim": true,
+      "gradient": true,
+      "phase": true,
+      "structural": true,
+      "fourier": true,
+      "glcm": true,
+      "gradient_boundary": true,
+      "phase_boundary": true,
+      "recommendations_pattern": true
+    },
+    "sampling_points": [],
+    "sampling_mode": "random",
+    "lab_thresholds": {
+      "dl": 1,
+      "da": 1,
+      "db": 1,
+      "magnitude": 2
+    }
+  },
+  "region_data": {
+    "type": "full"
+  }
+}

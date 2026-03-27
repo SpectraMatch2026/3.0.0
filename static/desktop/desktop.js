@@ -2410,25 +2410,33 @@ function runThesisTest(){
         .then(function(result){
             $('loadingOverlay').style.display='none';
             if(result.success){
-                log('Thesis tests completed successfully!','success');
-                log('Thesis folder: '+result.thesis_folder,'info');
-                log('Manifest: '+result.manifest_path,'info');
-                log('Total tests: '+result.total_tests+' | Successful: '+result.successful_tests,'info');
-                log('Total images extracted: '+result.total_images,'info');
-                if(result.summary){
-                    var s=result.summary;
-                    log('Total duration: '+s.total_duration_seconds+'s | Average: '+(s.average_duration_seconds||0)+'s','info');
+                log('═══ Thesis Test Complete ═══','success');
+                log('Folder: '+result.thesis_folder,'info');
+                log('PDFs: '+result.total_pdfs+' | Images: '+result.total_images,'info');
+                if(result.techniques&&result.techniques.length){
+                    result.techniques.forEach(function(t){
+                        if(t.success){
+                            log('['+t.label+'] Decision='+t.decision
+                                +' | Color='+parseFloat(t.color_score||0).toFixed(1)
+                                +'  Pattern='+parseFloat(t.pattern_score||0).toFixed(1)
+                                +'  PDFs='+t.pdfs_saved+' Images='+t.images_saved
+                                +'  ('+t.duration_seconds+'s)','success');
+                        }else{
+                            log('['+t.label+'] FAILED: '+(t.error||'unknown error'),'error');
+                        }
+                    });
                 }
-                showAlert('Success',result.message+'\\n\\nThesis folder: '+result.thesis_folder,'✓');
+                showAlert('Thesis Tests Complete',
+                    result.message+'\n\n'+result.total_pdfs+' PDFs and '+result.total_images+' images saved.\nFolder:\n'+result.thesis_folder,'✓');
             }else{
-                log('Thesis test error: '+result.error,'error');
-                showAlert('Error',result.error,'❌');
+                log('Thesis test failed: '+(result.error||'Unknown error'),'error');
+                showAlert('Error',result.error||'Thesis test failed','❌');
             }
         })
         .catch(function(err){
             $('loadingOverlay').style.display='none';
-            log('ERROR: '+err.message,'error');
-            showAlert('Error',err.message,'❌');
+            log('ERROR: '+(err.message||err),'error');
+            showAlert('Error',(err.message||String(err)),'❌');
         });
 }
 

@@ -175,7 +175,7 @@ def find_free_port(start=5199):
 def start_flask(port):
     """Import and run the Flask app on the given port (blocking)."""
     from app import app
-    app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False)
+    app.run(host='127.0.0.1', port=port, debug=False, use_reloader=False, threaded=True)
 
 
 def wait_for_server(port, timeout=30):

@@ -519,6 +519,7 @@ def analyze():
                 'receipt_url': f"/api/download_receipt/{session_id}",
                 'report_size': f"{size_mb:.2f} MB",
                 'single_image_mode': True,
+                'session_id': session_id,
                 'report_id': analysis_id,
                 'report_date': date_str,
                 'report_time': time_str,
@@ -866,6 +867,7 @@ def analyze():
             # Return JSON response with download URLs and detailed data
             response_data = _sanitize_for_json({
                 'success': True,
+                'session_id': session_id,
                 'color_score': color_score,
                 'pattern_score': pattern_score,
                 'overall_score': overall_score,
