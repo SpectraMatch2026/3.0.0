@@ -2291,9 +2291,30 @@ function openAlignmentStudio(){
     AlignmentStudio.open({refSrc:refSrc,sampleSrc:sampleSrc,refFile:refFile,sampleFile:sampleFile,regionData:regionData,isDesktop:true});
 }
 
+/* ═══ Calibration ═══ */
+function runCalibration(){
+    if(typeof AlignmentStudio!=='undefined'&&AlignmentStudio.runCalibration){
+        log('Starting calibration — testing all alignment techniques...','info');
+        AlignmentStudio.runCalibration();
+    } else {
+        log('AlignmentStudio module not loaded — open Alignment Studio first','error');
+    }
+}
+function downloadCalibrationReport(){
+    if(typeof AlignmentStudio!=='undefined'&&AlignmentStudio.downloadCalibrationReport){
+        log('Downloading calibration report...','info');
+        AlignmentStudio.downloadCalibrationReport();
+    } else {
+        log('AlignmentStudio module not loaded — open Alignment Studio first','error');
+    }
+}
+
 /* ═══ Public API (for inline onclick) ═══ */
 return {closeAlert:function(){$('alertDialog').style.display='none';},
         saveAs:saveAsDownload,
         resetToDefault:resetToDefault,
-        openAlignmentStudio:openAlignmentStudio};
+        openAlignmentStudio:openAlignmentStudio,
+        runCalibration:runCalibration,
+        downloadCalibrationReport:downloadCalibrationReport,
+        log:log};
 })();

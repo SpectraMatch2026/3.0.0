@@ -28,10 +28,13 @@ Desktop.ini
 # Temp files
 *.tmp
 *.bak
+*.backup
 *.log
 
 # Installer build artifacts
 installer/output/
+installer/build/
+installer/dist/
 dist/
 build/
 

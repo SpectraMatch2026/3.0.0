@@ -22,19 +22,16 @@ var AlignmentStudio = (function () {
         isProcessing: false,
         isDesktop: false,
         autoTestPending: null,
+        calibrationDone: false,
+        calibrationResults: {},
+        calibrationReportUrl: null,
+        calibrationReportFilename: null,
     };
 
     var TECHNIQUES = [
         { id: 'direct', icon: 'grid', category: 'baseline', handles: [] },
-        { id: 'orb_homography', icon: 'crosshair', category: 'registration', handles: ['rotation', 'scale', 'perspective', 'translation'] },
-        { id: 'ecc_alignment', icon: 'layers', category: 'registration', handles: ['rotation', 'scale', 'translation', 'shear'] },
-        { id: 'phase_correlation', icon: 'activity', category: 'registration', handles: ['rotation', 'translation'] },
         { id: 'ai_smart_match', icon: 'cpu', category: 'ai', handles: ['rotation', 'scale', 'translation', 'perspective', 'lighting'] },
-        { id: 'cascading_ecc', icon: 'anchor', category: 'registration', handles: ['rotation', 'scale', 'translation', 'shear'] },
-        { id: 'orb_affine', icon: 'target', category: 'registration', handles: ['rotation', 'scale', 'translation'] },
-        { id: 'subpixel_translation', icon: 'maximize', category: 'registration', handles: ['translation'] },
-        { id: 'pyramid_align', icon: 'triangle', category: 'registration', handles: ['rotation', 'scale', 'translation'] },
-        { id: 'tile_refine', icon: 'layout', category: 'registration', handles: ['translation'] },
+        { id: 'bestch', icon: 'crop', category: 'ai', handles: ['translation', 'cropping'] },
     ];
 
     var ICONS = {
@@ -57,6 +54,10 @@ var AlignmentStudio = (function () {
         maximize: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
         triangle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',
         layout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>',
+        crop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"/><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"/></svg>',
+        download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+        fileText: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+        alertTriangle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
     };
 
     var PROCESSING_STEPS = [
@@ -106,11 +107,11 @@ var AlignmentStudio = (function () {
                 '<div class="as-technique-desc" data-i18n="align.desc.' + tech.id + '">' + t('align.desc.' + tech.id, '') + '</div>' +
                 (badgesHTML ? '<div class="as-technique-badges">' + badgesHTML + '</div>' : '') +
                 '<div class="as-technique-actions">' +
-                    '<button class="as-btn as-btn-test" data-action="test" data-technique="' + tech.id + '" title="Test this technique live">' +
+                    '<button class="as-btn as-btn-test" data-action="test" data-technique="' + tech.id + '">' +
                         ICONS.play + '<span>' + t('align.test', 'Test') + '</span>' +
                     '</button>' +
-                    '<button class="as-btn as-btn-save" data-action="save" data-technique="' + tech.id + '" title="Save this technique for analysis">' +
-                        ICONS.save + '<span>Save</span>' +
+                    '<button class="as-btn as-btn-save" data-action="save" data-technique="' + tech.id + '">' +
+                        ICONS.check + '<span>' + t('align.apply', 'Apply') + '</span>' +
                     '</button>' +
                 '</div>' +
             '</div>';
@@ -160,12 +161,35 @@ var AlignmentStudio = (function () {
                     '<span>' + t('align.footer.note', 'Testing does not save settings. Use Save to confirm your choice.') + '</span>' +
                 '</div>' +
                 '<div class="as-footer-spacer"></div>' +
+                '<button class="as-btn-footer as-btn-calibration" id="asCalibrationBtn">' +
+                    ICONS.play + '<span>' + t('align.calibration', 'Calibration') + '</span>' +
+                '</button>' +
+                '<button class="as-btn-footer as-btn-download-calibration" id="asDownloadCalibrationBtn" style="display:none;">' +
+                    ICONS.download + '<span>' + t('align.download.calibration', 'Download Calibration Report') + '</span>' +
+                '</button>' +
                 '<button class="as-btn-footer as-btn-cancel" id="asCancelBtn">' +
-                    '<span>' + t('align.cancel', 'Cancel') + '</span>' +
+                    '<span>' + t('align.cancel', 'Close') + '</span>' +
                 '</button>' +
                 '<button class="as-btn-footer as-btn-confirm" id="asConfirmBtn">' +
-                    ICONS.check + '<span>' + t('align.confirm', 'Confirm & Close') + '</span>' +
+                    ICONS.check + '<span>' + t('align.confirm', 'Apply & Close') + '</span>' +
                 '</button>' +
+            '</div>' +
+            // BESTCH similarity popup (hidden by default)
+            '<div class="as-similarity-popup" id="asSimilarityPopup">' +
+                '<div class="as-similarity-popup-inner">' +
+                    '<div class="as-similarity-popup-icon">' + ICONS.alertTriangle + '</div>' +
+                    '<h3>' + t('align.bestch.low.title', 'Low Similarity Detected') + '</h3>' +
+                    '<p class="as-similarity-popup-msg" id="asSimilarityMsg"></p>' +
+                    '<div class="as-similarity-popup-details" id="asSimilarityDetails"></div>' +
+                    '<div class="as-similarity-popup-actions">' +
+                        '<button class="as-btn-footer as-btn-cancel" id="asSimilarityCancel">' +
+                            '<span>' + t('align.bestch.try.other', 'Try Another Technique') + '</span>' +
+                        '</button>' +
+                        '<button class="as-btn-footer as-btn-proceed" id="asSimilarityProceed">' +
+                            '<span>' + t('align.bestch.proceed', 'Proceed Anyway') + '</span>' +
+                        '</button>' +
+                    '</div>' +
+                '</div>' +
             '</div>' +
         '</div>';
     }
@@ -181,6 +205,12 @@ var AlignmentStudio = (function () {
         document.getElementById('asCloseBtn').addEventListener('click', close);
         document.getElementById('asCancelBtn').addEventListener('click', close);
         document.getElementById('asConfirmBtn').addEventListener('click', _onConfirm);
+        document.getElementById('asCalibrationBtn').addEventListener('click', _runCalibration);
+        document.getElementById('asDownloadCalibrationBtn').addEventListener('click', _downloadCalibrationReport);
+
+        // Similarity popup buttons
+        document.getElementById('asSimilarityCancel').addEventListener('click', _hideSimilarityPopup);
+        document.getElementById('asSimilarityProceed').addEventListener('click', _onSimilarityProceed);
 
         // Technique cards — click to SELECT AND AUTO-TEST
         overlay.querySelectorAll('.as-technique-card').forEach(function (card) {
@@ -203,7 +233,14 @@ var AlignmentStudio = (function () {
         });
 
         document.addEventListener('keydown', function (e) {
-            if (state.isOpen && e.key === 'Escape') close();
+            if (state.isOpen && e.key === 'Escape') {
+                var popup = document.getElementById('asSimilarityPopup');
+                if (popup && popup.classList.contains('visible')) {
+                    _hideSimilarityPopup();
+                } else {
+                    close();
+                }
+            }
         });
     }
 
@@ -224,6 +261,10 @@ var AlignmentStudio = (function () {
         state.testedTechniques = {};
         state.currentPreviews = null;
         state.currentMetrics = null;
+        state.calibrationDone = false;
+        state.calibrationResults = {};
+        state.calibrationReportUrl = null;
+        state.calibrationReportFilename = null;
 
         var modeSelect = document.getElementById(state.isDesktop ? 'propAlignmentMode' : 'alignment_mode');
         if (modeSelect) {
@@ -346,6 +387,11 @@ var AlignmentStudio = (function () {
                         _renderPreviewAnimated();
                         _renderMetrics();
                         _markCardTested(techId, data.metrics);
+
+                        // BESTCH: check for low similarity and show popup
+                        if (techId === 'bestch' && data.metrics && data.metrics.low_similarity) {
+                            _showSimilarityPopup(data.metrics);
+                        }
                     }, 350);
 
                     _showToast(t('align.test.success', 'Technique tested successfully'), 'success');
@@ -498,15 +544,25 @@ var AlignmentStudio = (function () {
         // Build transform indicator overlay
         var indicatorHTML = _buildTransformIndicator(m);
 
-        // Only show side-by-side comparison
+        // For BESTCH, show cropped ref instead of original ref
+        var refSrc = (state.refImageSrc || '');
+        var refLabel = t('align.reference', 'Reference');
+        var alignedLabel = t('align.aligned', 'Aligned Sample');
+        if (p.ref_cropped) {
+            refSrc = 'data:image/png;base64,' + p.ref_cropped;
+            refLabel = t('align.ref.cropped', 'Cropped Reference');
+            alignedLabel = t('align.sample.cropped', 'Cropped Sample');
+        }
+
+        // Side-by-side comparison
         html += '<div class="as-preview-images' + cls + '">' +
             '<div class="as-preview-pane">' +
-                '<span class="as-preview-label ref">' + t('align.reference', 'Reference') + '</span>' +
-                '<div class="as-preview-img-wrap"><img src="' + (state.refImageSrc || '') + '" alt="Reference"></div>' +
+                '<span class="as-preview-label ref">' + refLabel + '</span>' +
+                '<div class="as-preview-img-wrap"><img src="' + refSrc + '" alt="Reference"></div>' +
             '</div>' +
             '<div class="as-preview-vs">' + ICONS.arrowRight + '</div>' +
             '<div class="as-preview-pane">' +
-                '<span class="as-preview-label aligned">' + t('align.aligned', 'Aligned Sample') + '</span>' +
+                '<span class="as-preview-label aligned">' + alignedLabel + '</span>' +
                 '<div class="as-preview-img-wrap as-aligned-wrap">' +
                     indicatorHTML +
                     '<img class="as-aligned-img' + (animate ? ' as-img-reveal' : '') + '" src="data:image/png;base64,' + p.aligned + '" alt="Aligned">' +
@@ -577,6 +633,19 @@ var AlignmentStudio = (function () {
             parts.push('<div class="as-metric-sep"></div>');
             parts.push('<div class="as-metric"><span class="as-metric-label">' + t('align.matches', 'Matches') + '</span><span class="as-metric-value">' + m.good_matches + '</span></div>');
         }
+        if (m.similarity !== undefined) {
+            parts.push('<div class="as-metric-sep"></div>');
+            var simClass = m.similarity > 70 ? 'good' : (m.similarity > 40 ? 'warn' : 'bad');
+            parts.push('<div class="as-metric"><span class="as-metric-label">' + t('align.bestch.similarity', 'Similarity') + '</span><span class="as-metric-value ' + simClass + '">' + m.similarity + '%</span></div>');
+        }
+        if (m.area_percent !== undefined && m.area_percent > 0) {
+            parts.push('<div class="as-metric-sep"></div>');
+            parts.push('<div class="as-metric"><span class="as-metric-label">' + t('align.bestch.area', 'Area') + '</span><span class="as-metric-value">' + m.area_percent + '%</span></div>');
+        }
+        if (m.crop_size !== undefined) {
+            parts.push('<div class="as-metric-sep"></div>');
+            parts.push('<div class="as-metric"><span class="as-metric-label">' + t('align.bestch.crop', 'Crop') + '</span><span class="as-metric-value">' + m.crop_size + '</span></div>');
+        }
         if (m.reason && !applied) {
             parts.push('<div class="as-metrics-spacer"></div>');
             parts.push('<div class="as-metric"><span class="as-metric-label as-metric-reason">' + m.reason + '</span></div>');
@@ -638,6 +707,359 @@ var AlignmentStudio = (function () {
     }
 
     // ═══════════════════════════════════════════════════════════════
+    // BESTCH Similarity Popup
+    // ═══════════════════════════════════════════════════════════════
+
+    function _showSimilarityPopup(metrics) {
+        var popup = document.getElementById('asSimilarityPopup');
+        if (!popup) return;
+
+        var msg = document.getElementById('asSimilarityMsg');
+        var details = document.getElementById('asSimilarityDetails');
+
+        var sim = metrics.similarity || 0;
+        var area = metrics.area_percent || 0;
+        var cropSize = metrics.crop_size || '?';
+        var origSize = metrics.original_size || '?';
+
+        msg.textContent = t('align.bestch.low.msg',
+            'The similarity between the matched regions is too low for reliable comparison. ' +
+            'You can proceed with lower similarity or try another alignment technique.');
+
+        details.innerHTML =
+            '<div class="as-similarity-detail-row">' +
+                '<span class="as-similarity-detail-label">' + t('align.bestch.similarity', 'Similarity') + '</span>' +
+                '<span class="as-similarity-detail-value as-sim-bad">' + sim + '%</span>' +
+            '</div>' +
+            '<div class="as-similarity-detail-row">' +
+                '<span class="as-similarity-detail-label">' + t('align.bestch.area', 'Matched Area') + '</span>' +
+                '<span class="as-similarity-detail-value">' + area + '%</span>' +
+            '</div>' +
+            '<div class="as-similarity-detail-row">' +
+                '<span class="as-similarity-detail-label">' + t('align.bestch.crop', 'Crop Size') + '</span>' +
+                '<span class="as-similarity-detail-value">' + cropSize + ' ← ' + origSize + '</span>' +
+            '</div>';
+
+        popup.classList.add('visible');
+    }
+
+    function _hideSimilarityPopup() {
+        var popup = document.getElementById('asSimilarityPopup');
+        if (popup) popup.classList.remove('visible');
+    }
+
+    function _onSimilarityProceed() {
+        _hideSimilarityPopup();
+        // Force-accept the low similarity BESTCH result
+        if (state.currentMetrics) {
+            state.currentMetrics.low_similarity = false;
+            _showToast(t('align.bestch.proceeding', 'Proceeding with low similarity match'), 'warn');
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Calibration — Run All Techniques
+    // ═══════════════════════════════════════════════════════════════
+
+    function _desktopLog(msg, level) {
+        if (typeof Desktop !== 'undefined' && Desktop.log) {
+            Desktop.log(msg, level || 'info');
+        }
+        console.log('[AlignmentStudio] ' + (level || 'info') + ': ' + msg);
+    }
+
+    function _buildCalibrationFilename() {
+        var now = new Date();
+        var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+        var ts = now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) +
+                 '_' + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+        return 'SpectraMatch_Calibration_Report_' + ts + '.pdf';
+    }
+
+    function _buildCalibrationDisplayName() {
+        var now = new Date();
+        var lang = (typeof I18n !== 'undefined' && I18n.getLanguage) ? I18n.getLanguage() : 'en';
+        var locale = lang === 'tr' ? 'tr-TR' : 'en-US';
+        var opts = { year: 'numeric', month: 'short', day: 'numeric' };
+        var dateStr = now.toLocaleDateString(locale, opts);
+        var label = lang === 'tr' ? 'Kalibrasyon Raporu' : 'Calibration Report';
+        return label + ' - Advanced Settings ' + dateStr;
+    }
+
+    /**
+     * _runCalibration — Iterates through ALL techniques sequentially,
+     * testing each one via /api/alignment/preview. Shows progress in the
+     * processing overlay. After completion, reveals the Download button.
+     */
+    function _runCalibration() {
+        if (state.isProcessing) return;
+        if (!_hasImages()) {
+            _showToast(t('align.no.images', 'Please upload both images first'), 'warn');
+            _desktopLog('Calibration aborted — no images loaded', 'warn');
+            return;
+        }
+
+        _desktopLog('Starting calibration — testing all ' + TECHNIQUES.length + ' techniques...', 'info');
+
+        var calBtn = document.getElementById('asCalibrationBtn');
+        if (calBtn) {
+            calBtn.classList.add('processing');
+            calBtn.innerHTML = ICONS.play + '<span>' + t('align.calibrating', 'Calibrating...') + '</span>';
+        }
+
+        // Hide download button during new calibration
+        var dlBtn = document.getElementById('asDownloadCalibrationBtn');
+        if (dlBtn) dlBtn.style.display = 'none';
+
+        state.isProcessing = true;
+        state.calibrationDone = false;
+        state.calibrationResults = {};
+
+        // Show processing overlay
+        var processingEl = document.getElementById('asProcessingOverlay');
+        var processingText = document.getElementById('asProcessingText');
+        var processingStep = document.getElementById('asProcessingStep');
+        var processingBar = document.getElementById('asProcessingBarFill');
+        processingEl.classList.add('visible');
+        processingText.textContent = t('align.calibrating.all', 'Running calibration on all techniques...');
+
+        var techQueue = TECHNIQUES.slice(); // copy
+        var total = techQueue.length;
+        var idx = 0;
+
+        function _testNext() {
+            if (idx >= total) {
+                // All done
+                processingStep.textContent = t('align.calibration.complete', 'Calibration complete!');
+                processingBar.style.width = '100%';
+                _desktopLog('Calibration complete — ' + total + ' techniques tested', 'info');
+
+                setTimeout(function () {
+                    processingEl.classList.remove('visible');
+                    state.isProcessing = false;
+                    state.calibrationDone = true;
+
+                    // Restore calibration button
+                    if (calBtn) {
+                        calBtn.classList.remove('processing');
+                        calBtn.innerHTML = ICONS.play + '<span>' + t('align.calibration', 'Calibration') + '</span>';
+                    }
+
+                    // Show download button
+                    if (dlBtn) {
+                        dlBtn.style.display = '';
+                        dlBtn.classList.add('as-fade-in');
+                    }
+
+                    _showToast(t('align.calibration.done', 'All techniques tested. You can now download the calibration report.'), 'success');
+                }, 500);
+                return;
+            }
+
+            var tech = techQueue[idx];
+            var pct = Math.round(((idx) / total) * 100);
+            processingStep.textContent = (idx + 1) + '/' + total + ' — ' + t('align.name.' + tech.id, tech.id);
+            processingBar.style.width = pct + '%';
+
+            _desktopLog('Calibrating [' + (idx + 1) + '/' + total + ']: ' + tech.id, 'info');
+
+            // Direct technique doesn't need server call
+            if (tech.id === 'direct') {
+                state.calibrationResults['direct'] = {
+                    metrics: { applied: false, reason: 'Direct — no alignment', method: 'direct', processing_time_ms: 0 },
+                    previews: null
+                };
+                _markCardTested('direct', { applied: false, reason: 'Direct — no alignment' });
+                idx++;
+                setTimeout(_testNext, 100);
+                return;
+            }
+
+            var startTime = performance.now();
+
+            var formData = new FormData();
+            formData.append('mode', tech.id);
+            formData.append('region_data', JSON.stringify(state.regionData || {}));
+
+            _getImageFiles(function (refBlob, sampleBlob) {
+                formData.append('ref_image', refBlob, 'ref.png');
+                formData.append('sample_image', sampleBlob, 'sample.png');
+
+                fetch('/api/alignment/preview', { method: 'POST', body: formData })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    var elapsed = Math.round(performance.now() - startTime);
+                    if (data.success) {
+                        data.metrics.processing_time_ms = elapsed;
+                        state.calibrationResults[tech.id] = {
+                            metrics: data.metrics,
+                            previews: data.previews
+                        };
+                        state.testedTechniques[tech.id] = { previews: data.previews, metrics: data.metrics };
+                        _markCardTested(tech.id, data.metrics);
+                        _desktopLog('  \u2713 ' + tech.id + ': ' + (data.metrics.applied ? 'applied' : 'not applied') + ' (' + elapsed + 'ms)', 'info');
+                    } else {
+                        state.calibrationResults[tech.id] = {
+                            metrics: { applied: false, reason: data.error || 'Failed', processing_time_ms: elapsed },
+                            previews: null
+                        };
+                        _desktopLog('  \u2717 ' + tech.id + ': ' + (data.error || 'failed') + ' (' + elapsed + 'ms)', 'warn');
+                    }
+                })
+                .catch(function (err) {
+                    var elapsed = Math.round(performance.now() - startTime);
+                    state.calibrationResults[tech.id] = {
+                        metrics: { applied: false, reason: 'Error: ' + err.message, processing_time_ms: elapsed },
+                        previews: null
+                    };
+                    _desktopLog('  \u2717 ' + tech.id + ': ' + err.message, 'error');
+                })
+                .finally(function () {
+                    idx++;
+                    setTimeout(_testNext, 150);
+                });
+            });
+        }
+
+        _testNext();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // Download Calibration Report
+    // ═══════════════════════════════════════════════════════════════
+
+    function _downloadCalibrationReport() {
+        if (!state.calibrationDone || Object.keys(state.calibrationResults).length === 0) {
+            _showToast(t('align.calibration.run.first', 'Please run calibration first'), 'warn');
+            return;
+        }
+
+        _desktopLog('Generating calibration report PDF...', 'info');
+
+        var dlBtn = document.getElementById('asDownloadCalibrationBtn');
+        if (dlBtn) {
+            dlBtn.classList.add('processing');
+            dlBtn.innerHTML = ICONS.download + '<span>' + t('align.report.generating', 'Generating...') + '</span>';
+        }
+
+        // Collect all calibration results with metrics and preview images
+        var testedData = {};
+        var previewImages = {};
+        Object.keys(state.calibrationResults).forEach(function (key) {
+            var r = state.calibrationResults[key];
+            testedData[key] = r.metrics || {};
+            if (r.previews && r.previews.aligned) {
+                previewImages[key] = r.previews.aligned;
+            }
+            if (r.previews && r.previews.ref_cropped) {
+                previewImages[key + '_ref_cropped'] = r.previews.ref_cropped;
+            }
+        });
+
+        var reportLang = (typeof I18n !== 'undefined' && I18n.getLanguage) ? I18n.getLanguage() : 'en';
+
+        var formData = new FormData();
+        formData.append('tested_techniques', JSON.stringify(testedData));
+        formData.append('preview_images', JSON.stringify(previewImages));
+        formData.append('saved_technique', state.savedTechnique || 'direct');
+        formData.append('region_data', JSON.stringify(state.regionData || {}));
+        formData.append('report_lang', reportLang);
+
+        _getImageFiles(function (refBlob, sampleBlob) {
+            formData.append('ref_image', refBlob, 'ref.png');
+            formData.append('sample_image', sampleBlob, 'sample.png');
+
+            fetch('/api/alignment/processing-report', { method: 'POST', body: formData })
+            .then(function (res) {
+                if (!res.ok) throw new Error('Report generation failed (' + res.status + ')');
+                return res.json();
+            })
+            .then(function (data) {
+                if (!data.success) throw new Error(data.error || 'Unknown error');
+
+                var downloadUrl = data.download_url;
+                var filename = data.filename;
+                var displayName = _buildCalibrationDisplayName();
+
+                // Store for workspace integration
+                state.calibrationReportUrl = downloadUrl;
+                state.calibrationReportFilename = filename;
+
+                // Use native save in desktop, or browser download for web
+                if (typeof Desktop !== 'undefined' && Desktop.saveAs) {
+                    Desktop.saveAs(downloadUrl, filename);
+                } else {
+                    // Web: fetch the PDF blob from the download URL
+                    fetch(downloadUrl)
+                    .then(function (r) { return r.blob(); })
+                    .then(function (blob) {
+                        var a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(function () {
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(a.href);
+                        }, 200);
+                    });
+                }
+
+                // Add to workspace panel
+                _addToWorkspacePanel(downloadUrl, filename, displayName);
+
+                _desktopLog('Calibration report ready: ' + filename, 'info');
+                _showToast(t('align.report.success', 'Calibration report downloaded') + ': ' + filename, 'success');
+            })
+            .catch(function (err) {
+                _desktopLog('Calibration report error: ' + err.message, 'error');
+                _showToast(t('align.report.error', 'Error generating report: ') + err.message, 'error');
+            })
+            .finally(function () {
+                if (dlBtn) {
+                    dlBtn.classList.remove('processing');
+                    dlBtn.innerHTML = ICONS.download + '<span>' + t('align.download.calibration', 'Download Calibration Report') + '</span>';
+                }
+            });
+        });
+    }
+
+    function _addToWorkspacePanel(downloadUrl, filename, displayName) {
+        var wsDownloads = document.getElementById('wsDownloads');
+        if (!wsDownloads) return;
+
+        // Remove "no reports" placeholder if present
+        var empty = wsDownloads.querySelector('.ws-download-empty');
+        if (empty) empty.remove();
+
+        // Check if calibration link already exists
+        var existing = wsDownloads.querySelector('.ws-dl-calibration');
+        if (existing) existing.remove();
+
+        var link = document.createElement('a');
+        link.className = 'ws-dl-btn ws-dl-calibration';
+        link.href = 'javascript:void(0)';
+        link.onclick = function () {
+            if (typeof Desktop !== 'undefined' && Desktop.saveAs) {
+                Desktop.saveAs(downloadUrl, filename);
+            } else {
+                var a2 = document.createElement('a');
+                a2.href = downloadUrl;
+                a2.download = filename;
+                document.body.appendChild(a2);
+                a2.click();
+                document.body.removeChild(a2);
+            }
+        };
+        link.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+            '<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/>' +
+            '<line x1="12" y1="15" x2="12" y2="3"/></svg>' + displayName;
+        wsDownloads.appendChild(link);
+
+        _desktopLog('Calibration report added to workspace panel: ' + displayName, 'info');
+    }
+
+    // ═══════════════════════════════════════════════════════════════
     // Public API
     // ═══════════════════════════════════════════════════════════════
 
@@ -647,6 +1069,8 @@ var AlignmentStudio = (function () {
         isOpen: function () { return state.isOpen; },
         getAppliedTechnique: function () { return state.savedTechnique || state.appliedTechnique || 'direct'; },
         setAppliedTechnique: function (techId) { state.savedTechnique = techId; state.appliedTechnique = techId; },
+        runCalibration: _runCalibration,
+        downloadCalibrationReport: _downloadCalibrationReport,
     };
 
 })();

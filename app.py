@@ -27,6 +27,8 @@ def _sanitize_for_json(obj):
         return {k: _sanitize_for_json(v) for k, v in obj.items()}
     elif isinstance(obj, (list, tuple)):
         return [_sanitize_for_json(v) for v in obj]
+    elif isinstance(obj, (np.bool_,)):
+        return bool(obj)
     elif isinstance(obj, np.integer):
         return int(obj)
     elif isinstance(obj, np.floating):
@@ -248,6 +250,86 @@ def alignment_preview():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/alignment/processing-report', methods=['POST'])
+def alignment_processing_report():
+    """
+    Generate a Calibration PDF report, save it to UPLOAD_FOLDER,
+    and return JSON with a download URL (same pattern as other reports).
+    This ensures pywebview's native save_report bridge can fetch it.
+    """
+    ref_file = request.files.get('ref_image')
+    sample_file = request.files.get('sample_image')
+    tested_json = request.form.get('tested_techniques', '{}')
+    preview_json = request.form.get('preview_images', '{}')
+    saved_technique = request.form.get('saved_technique', 'direct')
+    region_json = request.form.get('region_data', '{}')
+    report_lang = request.form.get('report_lang', 'en')
+
+    try:
+        import cv2
+        import numpy as np
+        from modules.ProcessingReportBackend import generate_processing_report
+
+        tested_techniques = json.loads(tested_json)
+        preview_images = json.loads(preview_json)
+        region_data = json.loads(region_json)
+
+        # Load images for thumbnails
+        ref_img = None
+        sample_img = None
+        if ref_file:
+            ref_bytes = ref_file.read()
+            ref_arr = np.frombuffer(ref_bytes, np.uint8)
+            ref_img = cv2.imdecode(ref_arr, cv2.IMREAD_COLOR)
+        if sample_file:
+            sample_bytes = sample_file.read()
+            sample_arr = np.frombuffer(sample_bytes, np.uint8)
+            sample_img = cv2.imdecode(sample_arr, cv2.IMREAD_COLOR)
+
+        # Generate with a unique session ID, saved to UPLOAD_FOLDER
+        cal_session = 'cal_' + str(uuid.uuid4())
+        ts_str = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        cal_filename = f'SpectraMatch_Calibration_Report_{ts_str}.pdf'
+        output_path = os.path.join(UPLOAD_FOLDER, f'{cal_session}_calibration.pdf')
+
+        generate_processing_report(
+            output_path=output_path,
+            tested_techniques=tested_techniques,
+            saved_technique=saved_technique,
+            ref_img=ref_img,
+            sample_img=sample_img,
+            region_data=region_data,
+            report_lang=report_lang,
+            timezone_offset=3,
+            preview_images=preview_images,
+        )
+
+        download_url = f'/api/download_report/calibration/{cal_session}?fn={cal_filename}'
+
+        return jsonify({
+            'success': True,
+            'download_url': download_url,
+            'filename': cal_filename,
+            'session_id': cal_session,
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/download_report/calibration/<session_id>', methods=['GET'])
+def download_calibration_report(session_id):
+    """Serve a previously generated calibration report PDF."""
+    safe_id = os.path.basename(session_id)
+    pdf_path = os.path.join(UPLOAD_FOLDER, f"{safe_id}_calibration.pdf")
+    if os.path.exists(pdf_path):
+        fn = request.args.get('fn', f"SpectraMatch_Calibration_Report_{safe_id}.pdf")
+        return send_file(pdf_path, as_attachment=True, download_name=fn)
+    return jsonify({'error': 'Calibration report not found'}), 404
+
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     ref_file = request.files.get('ref_image')
@@ -360,6 +442,8 @@ def analyze():
                                                region_data=region_data)
                 if align_result['metrics'].get('applied', False):
                     sample_img_proc = align_result['aligned_sample']
+                    if align_result.get('ref_cropped') is not None:
+                        ref_img_proc = align_result['ref_cropped']
                     alignment_metrics = align_result['metrics']
                     print(f"Alignment applied: {alignment_mode} — {alignment_metrics.get('description', '')}")
                 else:
