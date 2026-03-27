@@ -238,7 +238,8 @@ def _run_technique(tech, base_url, run_dir, settings, region_data,
     # â”€â”€ 4. Save structured Data.json â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     data_json = _build_data_json(
         result, mode, label, duration,
-        ref_name, sample_name, pdfs_saved, images_saved
+        ref_name, sample_name, pdfs_saved, images_saved,
+        test_settings, region_data
     )
     json_path = os.path.join(tech_dir, 'Data.json')
     with open(json_path, 'w', encoding='utf-8') as f:
@@ -314,10 +315,11 @@ def _fetch(url, timeout=60):
 
 # â”€â”€ Comprehensive JSON builder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def _build_data_json(result, mode, label, duration, ref_name, sample_name,
-                     pdfs_saved, images_saved):
+                     pdfs_saved, images_saved, settings=None, region_data=None):
     """Package the full /api/analyze response into a structured thesis data file."""
     return {
         'metadata': {
+            'session_id'       : result.get('session_id', ''),
             'alignment_mode'   : mode,
             'alignment_label'  : label,
             'report_id'        : result.get('report_id', ''),
@@ -328,6 +330,12 @@ def _build_data_json(result, mode, label, duration, ref_name, sample_name,
             'images_used'      : {'reference': ref_name, 'sample': sample_name},
             'pdfs_saved'       : pdfs_saved,
             'images_saved'     : images_saved,
+            'pdf_filenames': {
+                'full'    : result.get('fn_full', ''),
+                'color'   : result.get('fn_color', ''),
+                'pattern' : result.get('fn_pattern', ''),
+                'receipt' : result.get('fn_receipt', ''),
+            },
         },
         'scores': {
             'color_score'            : result.get('color_score', 0),
@@ -372,6 +380,9 @@ def _build_data_json(result, mode, label, duration, ref_name, sample_name,
             'color'  : result.get('color_report_size', ''),
             'pattern': result.get('pattern_report_size', ''),
         },
+        'visualization_images' : result.get('images') or {},
+        'run_settings'         : settings or {},
+        'run_region'           : region_data or {},
     }
 
 
