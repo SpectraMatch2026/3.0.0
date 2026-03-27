@@ -99,6 +99,35 @@ class Api:
                 pass
             return {'ok': False, 'reason': str(e)}
 
+    def run_thesis_tests(self, current_settings, current_region_data, ref_file_info, sample_file_info):
+        """Execute automated thesis testing sequence using current desktop settings.
+        
+        Runs 3 analyses with different alignment modes using current settings,
+        captures real metrics, and creates organized thesis folder structure.
+        
+        Args:
+            current_settings: Current desktop settings from collectSettings()
+            current_region_data: Current region data from buildRegionData()
+            ref_file_info: Reference file info {path, name, dataUrl} or None
+            sample_file_info: Sample file info {path, name, dataUrl} or None
+        """
+        try:
+            from desktop.thesis_test_automation import run_thesis_tests
+            return run_thesis_tests(
+                self._port,
+                current_settings,
+                current_region_data,
+                ref_file_info,
+                sample_file_info
+            )
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return {
+                'success': False,
+                'error': f'Failed to run thesis tests: {str(e)}'
+            }
+
 
 def find_free_port(start=5199):
     """Find an available TCP port starting from *start*."""

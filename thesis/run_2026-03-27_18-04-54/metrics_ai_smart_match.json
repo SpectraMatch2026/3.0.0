@@ -1,0 +1,61 @@
+{
+  "overall": {
+    "color_score": 98.76528269045586,
+    "pattern_score": 99.50106083564833,
+    "overall_score": 99.1331717630521,
+    "decision": "ACCEPT"
+  },
+  "image_info": {
+    "width": 0,
+    "height": 0,
+    "total_pixels": 0
+  },
+  "color_analysis": {
+    "delta_e_2000": {
+      "mean": 0,
+      "std": 0,
+      "min": 0,
+      "max": 0
+    },
+    "delta_e_76": {
+      "mean": 0,
+      "std": 0,
+      "min": 0,
+      "max": 0
+    },
+    "delta_e_94": {
+      "mean": 0,
+      "std": 0,
+      "min": 0,
+      "max": 0
+    },
+    "csi_score": 0,
+    "color_similarity_percentage": 0
+  },
+  "pattern_analysis": {
+    "ssim": {
+      "score": 0,
+      "mean": 0,
+      "std": 0
+    },
+    "gradient": {
+      "score": 0,
+      "similarity": 0
+    },
+    "phase": {
+      "score": 0,
+      "correlation": 0
+    },
+    "structural": {
+      "score": 0,
+      "match": 0
+    }
+  },
+  "glcm_features": {},
+  "fft_metrics": {},
+  "alignment_quality": {},
+  "illuminant_analysis": {},
+  "sampling_points": [],
+  "report_id": "SPEC_260327_180522",
+  "processing_time": 0
+}

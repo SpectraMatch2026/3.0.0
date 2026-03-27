@@ -1,0 +1,144 @@
+{
+  "metadata": {
+    "timestamp": "2026-03-27T16:36:27.169903",
+    "software_version": "3.0.0",
+    "operator": "Abdelbary",
+    "test_purpose": "Thesis Documentation",
+    "image_pair": "1.png + 2.png"
+  },
+  "tests": [
+    {
+      "alignment_mode": "direct",
+      "start_time": "2026-03-27T16:36:27.170017",
+      "end_time": "2026-03-27T16:36:53.996206",
+      "duration_seconds": 26.83,
+      "success": true,
+      "image_dimensions": {
+        "width": 0,
+        "height": 0
+      },
+      "color_metrics": {
+        "delta_e_2000_mean": 0,
+        "delta_e_2000_std": 0,
+        "delta_e_2000_min": 0,
+        "delta_e_2000_max": 0,
+        "csi_score": 0,
+        "color_score": 100.0
+      },
+      "pattern_metrics": {
+        "ssim_score": 0,
+        "gradient_score": 0,
+        "phase_score": 0,
+        "structural_score": 0,
+        "pattern_score": 99.50106083564833
+      },
+      "glcm_features": {},
+      "fft_metrics": {},
+      "alignment_quality": {},
+      "overall_score": 99.75053041782417,
+      "decision": "ACCEPT",
+      "report_id": "SPEC_260327_163628",
+      "generated_files": {
+        "full_report": "",
+        "color_report": "",
+        "pattern_report": "",
+        "settings_receipt": ""
+      },
+      "error": null
+    },
+    {
+      "alignment_mode": "ai_smart_match",
+      "start_time": "2026-03-27T16:36:53.996423",
+      "end_time": "2026-03-27T16:37:15.934700",
+      "duration_seconds": 21.94,
+      "success": true,
+      "image_dimensions": {
+        "width": 0,
+        "height": 0
+      },
+      "color_metrics": {
+        "delta_e_2000_mean": 0,
+        "delta_e_2000_std": 0,
+        "delta_e_2000_min": 0,
+        "delta_e_2000_max": 0,
+        "csi_score": 0,
+        "color_score": 100.0
+      },
+      "pattern_metrics": {
+        "ssim_score": 0,
+        "gradient_score": 0,
+        "phase_score": 0,
+        "structural_score": 0,
+        "pattern_score": 99.50106083564833
+      },
+      "glcm_features": {},
+      "fft_metrics": {},
+      "alignment_quality": {},
+      "overall_score": 99.75053041782417,
+      "decision": "ACCEPT",
+      "report_id": "SPEC_260327_163654",
+      "generated_files": {
+        "full_report": "",
+        "color_report": "",
+        "pattern_report": "",
+        "settings_receipt": ""
+      },
+      "error": null
+    },
+    {
+      "alignment_mode": "bestch",
+      "start_time": "2026-03-27T16:37:15.934959",
+      "end_time": "2026-03-27T16:37:27.565829",
+      "duration_seconds": 11.63,
+      "success": true,
+      "image_dimensions": {
+        "width": 0,
+        "height": 0
+      },
+      "color_metrics": {
+        "delta_e_2000_mean": 0,
+        "delta_e_2000_std": 0,
+        "delta_e_2000_min": 0,
+        "delta_e_2000_max": 0,
+        "csi_score": 0,
+        "color_score": 100.0
+      },
+      "pattern_metrics": {
+        "ssim_score": 0,
+        "gradient_score": 0,
+        "phase_score": 0,
+        "structural_score": 0,
+        "pattern_score": 100.0
+      },
+      "glcm_features": {},
+      "fft_metrics": {},
+      "alignment_quality": {},
+      "overall_score": 100.0,
+      "decision": "ACCEPT",
+      "report_id": "SPEC_260327_163716",
+      "generated_files": {
+        "full_report": "",
+        "color_report": "",
+        "pattern_report": "",
+        "settings_receipt": ""
+      },
+      "error": null
+    }
+  ],
+  "summary": {
+    "total_tests": 3,
+    "successful_tests": 3,
+    "failed_tests": 0,
+    "average_duration_seconds": 20.13,
+    "color_analysis": {
+      "mean_delta_e_2000": 0.0,
+      "mean_csi_score": 0.0,
+      "mean_color_score": 100.0
+    },
+    "pattern_analysis": {
+      "mean_ssim_score": 0.0,
+      "mean_pattern_score": 99.67
+    },
+    "overall_mean_score": 99.83
+  }
+}

@@ -105,7 +105,8 @@ var T={en:{
 'region.click.hint':'Click on image to place region center','region.outside':'Point is outside the selected region',
 'updates.current':'You are up to date!',
 'rn.item1':'Full Turkish language support for all UI elements','rn.item2':'Complete toolbar with all analysis and help options','rn.item3':'Freehand (Pen) region selection tool','rn.item4':'Ready-to-Test built-in sample images','rn.item5':'Session persistence and state restoration','rn.item6':'Native Save-As dialog for PDF reports','rn.item7':'Manual and random sampling point selection','rn.item8':'GLCM texture and Fourier frequency analysis','rn.item9':'Comprehensive PDF reports with visualizations','rn.item10':'Panel resize and layout customization',
-'tb.title.open.ref':'Open Reference Image (Ctrl+O)','tb.title.open.sample':'Open Sample Image (Ctrl+Shift+O)','tb.title.run':'Run Analysis (F5)','tb.title.delete':'Delete Images (Ctrl+D)','tb.title.full.image':'Process entire image','tb.title.single.mode':'Single image analysis mode','tb.title.ready.test':'Ready-to-Test Images','tb.title.datasheet':'Technical Datasheet','tb.title.feedback':'Send Feedback','tb.title.reset':'Reset to Default','tb.title.lang.switch':'Switch language','tb.title.theme':'Toggle theme','tb.title.hide.panel':'Hide panel','tb.title.clear.console':'Clear console',
+'tb.title.open.ref':'Open Reference Image (Ctrl+O)','tb.title.open.sample':'Open Sample Image (Ctrl+Shift+O)','tb.title.run':'Run Analysis (F5)','tb.title.delete':'Delete Images (Ctrl+D)','tb.title.full.image':'Process entire image','tb.title.single.mode':'Single image analysis mode','tb.title.ready.test':'Ready-to-Test Images','tb.title.datasheet':'Technical Datasheet','tb.title.feedback':'Send Feedback','tb.title.thesis.test':'Test for Thesis','tb.title.reset':'Reset to Default','tb.title.lang.switch':'Switch language','tb.title.theme':'Toggle theme','tb.title.hide.panel':'Hide panel','tb.title.clear.console':'Clear console',
+'desktop.alignment.mode':'Alignment Mode','desktop.alignment.studio':'Alignment Studio','desktop.open.studio':'Open Studio',
 'rpt.report.summary':'Report Summary','rpt.color.analysis':'Color Analysis Details','rpt.pattern.analysis':'Pattern Analysis Details',
 'rpt.texture.frequency':'Texture & Frequency Analysis','rpt.single.image.analysis':'Single Image Analysis',
 'rpt.color.scoring.label':'Color Scoring','rpt.pattern.scoring.label':'Pattern Scoring',
@@ -230,7 +231,8 @@ var T={en:{
 'region.click.hint':'Bölge merkezini yerleştirmek için görüntüye tıklayın','region.outside':'Nokta seçili bölgenin dışında',
 'updates.current':'Güncelsiniz!',
 'rn.item1':'Tüm arayüz öğeleri için tam Türkçe dil desteği','rn.item2':'Tüm analiz ve yardım seçenekleriyle eksiksiz araç çubuğu','rn.item3':'Serbest çizim (Kalem) bölge seçim aracı','rn.item4':'Teste hazır yerleşik örnek görüntüler','rn.item5':'Oturum kalıcılığı ve durum geri yükleme','rn.item6':'PDF raporları için yerel Farklı Kaydet diyaloğu','rn.item7':'Manuel ve rastgele örnekleme noktası seçimi','rn.item8':'GLCM doku ve Fourier frekans analizi','rn.item9':'Görselleştirmelerle kapsamlı PDF raporları','rn.item10':'Panel yeniden boyutlandırma ve düzen özelleştirme',
-'tb.title.open.ref':'Referans Görüntü Aç (Ctrl+O)','tb.title.open.sample':'Örnek Görüntü Aç (Ctrl+Shift+O)','tb.title.run':'Analizi Çalıştır (F5)','tb.title.delete':'Görüntüleri Sil (Ctrl+D)','tb.title.full.image':'Tüm görüntüyü işle','tb.title.single.mode':'Tek görüntü analiz modu','tb.title.ready.test':'Teste Hazır Görüntüler','tb.title.datasheet':'Teknik Veri Sayfası','tb.title.feedback':'Geri Bildirim Gönder','tb.title.reset':'Varsayılana Sıfırla','tb.title.lang.switch':'Dil değiştir','tb.title.theme':'Tema değiştir','tb.title.hide.panel':'Paneli gizle','tb.title.clear.console':'Konsolu temizle',
+'tb.title.open.ref':'Referans Görüntü Aç (Ctrl+O)','tb.title.open.sample':'Örnek Görüntü Aç (Ctrl+Shift+O)','tb.title.run':'Analizi Çalıştır (F5)','tb.title.delete':'Görüntüleri Sil (Ctrl+D)','tb.title.full.image':'Tüm görüntüyü işle','tb.title.single.mode':'Tek görüntü analiz modu','tb.title.ready.test':'Teste Hazır Görüntüler','tb.title.datasheet':'Teknik Veri Sayfası','tb.title.feedback':'Geri Bildirim Gönder','tb.title.thesis.test':'Tez Testi','tb.title.reset':'Varsayılana Sıfırla','tb.title.lang.switch':'Dil değiştir','tb.title.theme':'Tema değiştir','tb.title.hide.panel':'Paneli gizle','tb.title.clear.console':'Konsolu temizle',
+'desktop.alignment.mode':'Alignment Mode','desktop.alignment.studio':'Alignment Studio','desktop.open.studio':'Open Studio',
 'rpt.report.summary':'Rapor Özeti','rpt.color.analysis':'Renk Analizi Detayları','rpt.pattern.analysis':'Desen Analizi Detayları',
 'rpt.texture.frequency':'Doku ve Frekans Analizi','rpt.single.image.analysis':'Tek Görüntü Analizi',
 'rpt.color.scoring.label':'Renk Puanlama','rpt.pattern.scoring.label':'Desen Puanlama',
@@ -465,6 +467,7 @@ function initToolbar(){
     $('tbDelete').addEventListener('click',confirmDelete);
     $('tbDatasheet').addEventListener('click',function(){$('datasheetDialog').style.display='';});
     $('tbFeedback').addEventListener('click',function(){$('feedbackDialog').style.display='';});
+    $('tbThesisTest').addEventListener('click',runThesisTest);
 
     $('tbSingleMode').addEventListener('change',function(){
         State.singleMode=this.checked;
@@ -2279,6 +2282,77 @@ document.addEventListener('change',function(e){
     if(!isNaN(mn)&&v<mn)el.value=mn;
     if(!isNaN(mx)&&v>mx)el.value=mx;
 });
+
+/* ═══ Thesis Test Automation ═══ */
+function runThesisTest(){
+    if(!window.pywebview||!window.pywebview.api){
+        showAlert('Error','Desktop API not available','⚠️');
+        return;
+    }
+    
+    log('Starting automated thesis testing...','info');
+    log('Collecting current desktop settings...','info');
+    
+    // Collect current settings and region data
+    var currentSettings=collectSettings();
+    var currentRegionData=buildRegionData();
+    
+    // Prepare file information
+    var refFileInfo=null;
+    var sampleFileInfo=null;
+    
+    if(State.refFile){
+        refFileInfo={
+            path:State.refFile.path||null,
+            name:State.refFile.name||'reference.png',
+            dataUrl:State.refDataUrl||null
+        };
+    }
+    
+    if(State.sampleFile){
+        sampleFileInfo={
+            path:State.sampleFile.path||null,
+            name:State.sampleFile.name||'sample.png',
+            dataUrl:State.sampleDataUrl||null
+        };
+    }
+    
+    // Check if we have images or will use fallback
+    if(!refFileInfo||!sampleFileInfo){
+        log('No workspace images found, will use Ready-to-Test Pair 1 as fallback','warn');
+    }else{
+        log('Using current workspace images for testing','info');
+    }
+    
+    $('loadingTitle').textContent='Running Thesis Tests';
+    $('loadingText').textContent='Executing 3 automated analyses with different alignment modes...';
+    $('loadingOverlay').style.display='';
+    
+    window.pywebview.api.run_thesis_tests(currentSettings,currentRegionData,refFileInfo,sampleFileInfo)
+        .then(function(result){
+            $('loadingOverlay').style.display='none';
+            if(result.success){
+                log('Thesis tests completed successfully!','success');
+                log('Thesis folder: '+result.thesis_folder,'info');
+                log('Manifest: '+result.manifest_path,'info');
+                log('Total tests: '+result.total_tests+' | Successful: '+result.successful_tests,'info');
+                log('Total images extracted: '+result.total_images,'info');
+                if(result.summary){
+                    var s=result.summary;
+                    log('Total duration: '+s.total_duration_seconds+'s | Average: '+(s.average_duration_seconds||0)+'s','info');
+                }
+                showAlert('Success',result.message+'\\n\\nThesis folder: '+result.thesis_folder,'✓');
+            }else{
+                log('Thesis test error: '+result.error,'error');
+                showAlert('Error',result.error,'❌');
+            }
+        })
+        .catch(function(err){
+            $('loadingOverlay').style.display='none';
+            log('ERROR: '+err.message,'error');
+            showAlert('Error',err.message,'❌');
+        });
+}
 
 /* ═══ Alignment Studio (v3.0.0) ═══ */
 function openAlignmentStudio(){
