@@ -29,7 +29,6 @@ The system is developed as part of ongoing research at the **Department of Elect
 
 - **Color Analysis** — Computes CIE ΔE2000 color difference across user-defined sampling points, with support for multiple illuminants (D65, D50, A, C, F2, TL84) and color spaces (CIELAB, sRGB, CMYK, XYZ).
 - **Pattern Analysis** — Evaluates structural similarity (SSIM), GLCM texture features, Fourier-domain frequency analysis, and phase correlation between reference and sample images.
-- **Image Alignment** — Preprocessing stage that corrects geometric capture variations before analysis. Three modes: Direct Pixel (no preprocessing), AI SmartMatch (multi-stage cascade alignment), and BESTCH (best-matching region detection for repetitive patterns).
 - **Single Image Analysis** — Standalone mode for analyzing a single image's color distribution, texture uniformity, and defect indicators without a reference.
 - **Region Selection** — Interactive region-of-interest tools including circle, square, rectangle, and freehand polygon (pen) selection with real-time visual overlay.
 - **Sampling Configuration** — Configurable N-point sampling with manual placement, random generation, or hybrid workflows. Points are validated against the selected region.
@@ -52,21 +51,20 @@ Both interfaces share the same backend (`app.py`) and analysis modules. The desk
 ### Project Structure
 
 ```
-SPECTRAMATCH_PROJECT/
+SPECTRAMATCH2026_feb/
 ├── app.py                      # Flask application (routes, API endpoints)
 ├── wsgi.py                     # WSGI entry point for production deployment
 ├── requirements.txt            # Python dependencies
 ├── Launch_Desktop_App.bat      # Windows launcher for desktop mode
 │
 ├── modules/                    # Backend analysis engine
-│   ├── ColorUnitBackend.py        # Color difference analysis (ΔE2000, CIELAB, illuminants)
-│   ├── PatternUnitBackend.py      # Pattern analysis (SSIM, GLCM, FFT, phase correlation)
-│   ├── ImageAlignmentBackend.py   # Image alignment preprocessing (Direct, AI SmartMatch, BESTCH)
+│   ├── ColorUnitBackend.py     # Color difference analysis (ΔE2000, CIELAB, illuminants)
+│   ├── PatternUnitBackend.py   # Pattern analysis (SSIM, GLCM, FFT, phase correlation)
 │   ├── SingleImageUnitBackend.py  # Single-image standalone analysis
 │   ├── RecommendationsEngine.py   # Threshold-aware findings & recommendations
-│   ├── ReportTranslations.py      # Bilingual translation dictionary for PDF reports
-│   ├── ReportUtils.py             # Shared PDF styling, constants, and utilities
-│   └── SettingsReceipt.py         # Settings receipt PDF generator
+│   ├── ReportTranslations.py   # Bilingual translation dictionary for PDF reports
+│   ├── ReportUtils.py          # Shared PDF styling, constants, and utilities
+│   └── SettingsReceipt.py      # Settings receipt PDF generator
 │
 ├── templates/
 │   ├── index.html              # Web application UI
@@ -77,20 +75,17 @@ SPECTRAMATCH_PROJECT/
 │   └── splash.html             # Desktop splash screen
 │
 └── static/
-    ├── css/                       # Stylesheets
-    │   ├── main.css
-    │   ├── alignment-studio.css   # Alignment Studio modal styles
-    │   └── image-actions.css
-    ├── js/                        # Client-side JavaScript
-    │   ├── app.js                 # Main application logic and UI controller
-    │   ├── alignment-studio.js    # Interactive alignment testing studio
-    │   ├── region-selector.js     # Interactive region selection on images
-    │   ├── region-validator.js    # Point-in-region validation (circle, rect, polygon)
-    │   └── i18n.js                # Internationalization (EN/TR translations)
-    ├── images/                    # Logos and flag icons
-    ├── DataSheets/                # Technical datasheets (EN/TR PDFs)
-    ├── READYTOTEST/               # Built-in sample images for quick testing
-    └── Animation/                 # Loading animation assets
+    ├── css/                    # Stylesheets (main.css, shape-dropdown.css, image-actions.css)
+    ├── js/                     # Client-side JavaScript
+    │   ├── app.js              # Main application logic and UI controller
+    │   ├── region-selector.js  # Interactive region selection on images
+    │   ├── region-validator.js # Point-in-region validation (circle, rect, polygon)
+    │   ├── i18n.js             # Internationalization (EN/TR translations)
+    │   └── development-modal.js
+    ├── images/                 # Logos and flag icons
+    ├── DataSheets/             # Technical datasheets (EN/TR PDFs)
+    ├── READYTOTEST/            # Built-in sample images for quick testing
+    └── Animation/              # Loading animation assets
 ```
 
 ---
@@ -232,7 +227,6 @@ Analysis parameters are configurable through the Advanced Settings modal:
 | Report Language | Language for PDF output | English |
 | Operator | Operator name for reports | — |
 | Timezone | UTC offset for timestamps | +3 |
-| Image Alignment Mode | Preprocessing before analysis (Direct / AI SmartMatch / BESTCH) | Direct |
 
 ---
 

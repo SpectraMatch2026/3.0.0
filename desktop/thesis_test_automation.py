@@ -316,10 +316,23 @@ def _fetch(url, timeout=60):
 # â”€â”€ Comprehensive JSON builder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def _build_data_json(result, mode, label, duration, ref_name, sample_name,
                      pdfs_saved, images_saved, settings=None, region_data=None):
-    """Package the full /api/analyze response into a structured thesis data file."""
-    return {
+    """Package the full /api/analyze response into a structured thesis data file.
+
+    Every field from the API response is captured.  Temporary URL fields are
+    omitted (the actual files are already saved to disk).  The raw_api_fields
+    section acts as a catch-all so that no data is ever silently dropped.
+    """
+    # ── URL-type fields that are transient and should NOT be persisted ─────────
+    _url_fields = {
+        'pdf_url', 'receipt_url', 'color_report_url', 'pattern_report_url',
+        'images',    # image URLs — the actual PNG files are saved in Images/
+    }
+
+    # ── Build the structured document ─────────────────────────────────────────
+    doc = {
+
+        # ── 1. Run metadata ───────────────────────────────────────────────────
         'metadata': {
-            'session_id'       : result.get('session_id', ''),
             'alignment_mode'   : mode,
             'alignment_label'  : label,
             'report_id'        : result.get('report_id', ''),
@@ -331,59 +344,109 @@ def _build_data_json(result, mode, label, duration, ref_name, sample_name,
             'pdfs_saved'       : pdfs_saved,
             'images_saved'     : images_saved,
             'pdf_filenames': {
-                'full'    : result.get('fn_full', ''),
-                'color'   : result.get('fn_color', ''),
+                'full'    : result.get('fn_full',    ''),
+                'color'   : result.get('fn_color',   ''),
                 'pattern' : result.get('fn_pattern', ''),
                 'receipt' : result.get('fn_receipt', ''),
             },
+            'report_sizes': {
+                'full'    : result.get('report_size',         ''),
+                'color'   : result.get('color_report_size',   ''),
+                'pattern' : result.get('pattern_report_size', ''),
+            },
         },
+
+        # ── 2. Overall scores & decisions ─────────────────────────────────────
         'scores': {
-            'color_score'            : result.get('color_score', 0),
-            'pattern_score'          : result.get('pattern_score', 0),
-            'overall_score'          : result.get('overall_score', 0),
-            'decision'               : result.get('decision', ''),
-            'color_status'           : result.get('color_status', ''),
-            'pattern_status'         : result.get('pattern_status', ''),
-            'color_scoring_method'   : result.get('color_scoring_method', ''),
-            'color_method_label'     : result.get('color_method_label', ''),
+            'color_score'            : result.get('color_score',            0),
+            'pattern_score'          : result.get('pattern_score',          0),
+            'overall_score'          : result.get('overall_score',          0),
+            'decision'               : result.get('decision',               ''),
+            'color_status'           : result.get('color_status',           ''),
+            'pattern_status'         : result.get('pattern_status',         ''),
+            'color_scoring_method'   : result.get('color_scoring_method',   ''),
+            'color_method_label'     : result.get('color_method_label',     ''),
             'pattern_scoring_method' : result.get('pattern_scoring_method', ''),
-            'pattern_method_label'   : result.get('pattern_method_label', ''),
+            'pattern_method_label'   : result.get('pattern_method_label',   ''),
         },
+
+        # ── 3. Color analysis ─────────────────────────────────────────────────
+        #  color_regions  = per-sampling-point table
+        #                   each entry: {id, pos[x,y], de76, de94, de00,
+        #                               status, ref_lab[L,a,b], sam_lab[L,a,b],
+        #                               ref_rgb[R,G,B], sam_rgb[R,G,B]}
+        #  de_statistics   = summary stats for de76/de94/de00 (mean/std/min/max)
+        #  illuminant_data = per-illuminant CSI & ΔE00 table
+        #  color_averages  = mean LAB and RGB across all sampling points
         'color_analysis': {
-            'mean_de00'      : result.get('mean_de00', 0),
-            'csi_value'      : result.get('csi_value', 0),
-            'de_statistics'  : result.get('de_statistics', {}),
-            'color_regions'  : result.get('color_regions', []),
-            'color_averages' : result.get('color_averages', {}),
+            'mean_de00'      : result.get('mean_de00',       0),
+            'csi_value'      : result.get('csi_value',       0),
+            'de_statistics'  : result.get('de_statistics',   {}),
+            'color_regions'  : result.get('color_regions',   []),
+            'color_averages' : result.get('color_averages',  {}),
             'illuminant_data': result.get('illuminant_data', []),
         },
+
+        # ── 4. Pattern analysis ───────────────────────────────────────────────
+        #  individual_scores = {"Structural SSIM": x,
+        #                       "Gradient Similarity": x,
+        #                       "Phase Correlation": x,
+        #                       "Structural Match": x, ...}
+        #  structural_meta   = {similarity_score, verdict, change_percentage}
         'pattern_analysis': {
-            'composite_score'   : result.get('pattern_composite', 0),
+            'composite_score'   : result.get('pattern_composite',    0),
             'final_status'      : result.get('pattern_final_status', ''),
-            'individual_scores' : result.get('pattern_scores', {}),
-            'structural_meta'   : result.get('structural_meta', {}),
+            'individual_scores' : result.get('pattern_scores',       {}),
+            'structural_meta'   : result.get('structural_meta',      {}),
         },
+
+        # ── 5. Alignment ──────────────────────────────────────────────────────
         'alignment': {
-            'mode'   : mode,
+            'mode'   : result.get('alignment_mode', mode),
             'metrics': result.get('alignment_metrics', {}),
         },
+
+        # ── 6. Recommendations & conclusions ─────────────────────────────────
         'recommendations': {
-            'color_findings'           : result.get('color_findings', []),
-            'color_conclusion'         : result.get('color_conclusion_text', ''),
-            'color_conclusion_status'  : result.get('color_conclusion_status', ''),
-            'pattern_findings'         : result.get('pattern_findings', []),
-            'pattern_conclusion'       : result.get('pattern_conclusion_text', ''),
-            'pattern_conclusion_status': result.get('pattern_conclusion_status', ''),
+            'color_findings'            : result.get('color_findings',            []),
+            'color_conclusion'          : result.get('color_conclusion_text',     ''),
+            'color_conclusion_status'   : result.get('color_conclusion_status',   ''),
+            'pattern_findings'          : result.get('pattern_findings',          []),
+            'pattern_conclusion'        : result.get('pattern_conclusion_text',   ''),
+            'pattern_conclusion_status' : result.get('pattern_conclusion_status', ''),
         },
-        'report_sizes': {
-            'full'   : result.get('report_size', ''),
-            'color'  : result.get('color_report_size', ''),
-            'pattern': result.get('pattern_report_size', ''),
+
+        # ── 7. Exact settings used for this run ───────────────────────────────
+        #  Critical for thesis reproducibility
+        'settings_used': settings if settings is not None else {},
+
+        # ── 8. Region / crop definition used ─────────────────────────────────
+        'region_data': region_data if region_data is not None else {},
+
+        # ── 9. Catch-all: every API field not already covered above ───────────
+        #  Ensures no data is silently dropped if the API adds new fields
+        'raw_api_fields': {
+            k: v for k, v in result.items()
+            if k not in _url_fields
+            and k not in {
+                'success', 'session_id',
+                'color_score', 'pattern_score', 'overall_score', 'decision',
+                'color_status', 'pattern_status',
+                'color_scoring_method', 'color_method_label',
+                'pattern_scoring_method', 'pattern_method_label',
+                'mean_de00', 'csi_value',
+                'de_statistics', 'color_regions', 'color_averages', 'illuminant_data',
+                'pattern_composite', 'pattern_final_status', 'pattern_scores', 'structural_meta',
+                'alignment_mode', 'alignment_metrics',
+                'color_findings', 'color_conclusion_text', 'color_conclusion_status',
+                'pattern_findings', 'pattern_conclusion_text', 'pattern_conclusion_status',
+                'report_id', 'report_date', 'report_time', 'operator',
+                'report_size', 'color_report_size', 'pattern_report_size',
+                'fn_full', 'fn_color', 'fn_pattern', 'fn_receipt',
+            }
         },
-        'visualization_images' : result.get('images') or {},
-        'run_settings'         : settings or {},
-        'run_region'           : region_data or {},
     }
+    return doc
 
 
 if __name__ == '__main__':
