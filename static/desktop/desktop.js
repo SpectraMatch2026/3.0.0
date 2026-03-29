@@ -145,7 +145,24 @@ var T={en:{
 'rpt.score.color':'Color','rpt.score.pattern':'Pattern','rpt.score.overall':'Overall',
 'rpt.dl.full':'Full Report','rpt.dl.color':'Color Report','rpt.dl.pattern':'Pattern Report','rpt.dl.receipt':'Settings Receipt',
 'rpt.decision.accept':'ACCEPT','rpt.decision.reject':'REJECT','rpt.decision.conditional':'CONDITIONAL','rpt.decision.complete':'COMPLETE',
-'exit.title':'Close SpectraMatch?','exit.warning':'Unsaved data and reports may be lost.','exit.cancel':'Cancel','exit.close':'Close'
+'exit.title':'Close SpectraMatch?','exit.warning':'Unsaved data and reports may be lost.','exit.cancel':'Cancel','exit.close':'Close',
+'btn.ok':'OK',
+'loading.thesis.title':'Running Thesis Tests',
+'loading.thesis.stage.init':'Initializing test environment...',
+'loading.thesis.stage.direct':'Running Direct Pixel analysis (1/3)...',
+'loading.thesis.stage.ai':'Running AI SmartMatch analysis (2/3)...',
+'loading.thesis.stage.bestch':'Running BESTCH analysis (3/3)...',
+'loading.thesis.stage.compiling':'Compiling results & saving reports...',
+'thesis.rtt.autoload':'No workspace images — loading Ready-to-Test Pair 1...',
+'thesis.rtt.loading':'Loading test images into workspace...',
+'thesis.rtt.autoloaded':'Ready-to-Test Pair 1 loaded.',
+'thesis.rtt.starting':'Images loaded — starting thesis test...',
+'alignment.no.images.title':'Images Required',
+'alignment.no.images.msg':'Please load both a reference and sample image before opening Alignment Studio.',
+'tb.align.label':'Align:',
+'tb.title.align.mode':'Alignment Mode — select pre-processing method',
+'tb.title.open.studio':'Open Alignment Studio',
+'tb.title.sampling.count':'Sampling Count — number of color measurement points'
 },tr:{
 'menu.file':'Dosya','menu.open.ref':'Referans Görüntü Aç...','menu.open.sample':'Örnek Görüntü Aç...',
 'menu.delete.all':'Tüm Görüntüleri Sil','menu.exit':'Çıkış','menu.analysis':'Analiz','menu.run':'Analizi Çalıştır',
@@ -272,15 +289,31 @@ var T={en:{
 'rpt.score.color':'Renk','rpt.score.pattern':'Desen','rpt.score.overall':'Genel',
 'rpt.dl.full':'Tam Rapor','rpt.dl.color':'Renk Raporu','rpt.dl.pattern':'Desen Raporu','rpt.dl.receipt':'Ayar Makbuzu',
 'rpt.decision.accept':'KABUL','rpt.decision.reject':'RED','rpt.decision.conditional':'KOŞULLU','rpt.decision.complete':'TAMAMLANDI',
-'exit.title':'SpectraMatch Kapatılsın mı?','exit.warning':'Kaydedilmemiş veriler ve raporlar kaybolabilir.','exit.cancel':'İptal','exit.close':'Kapat'
+'exit.title':'SpectraMatch Kapatılsın mı?','exit.warning':'Kaydedilmemiş veriler ve raporlar kaybolabilir.','exit.cancel':'İptal','exit.close':'Kapat',
+'btn.ok':'Tamam',
+'loading.thesis.title':'Tez Testleri Çalıştırılıyor',
+'loading.thesis.stage.init':'Test ortamı hazırlanıyor...',
+'loading.thesis.stage.direct':'Direkt Piksel analizi çalıştırılıyor (1/3)...',
+'loading.thesis.stage.ai':'AI SmartMatch analizi çalıştırılıyor (2/3)...',
+'loading.thesis.stage.bestch':'BESTCH analizi çalıştırılıyor (3/3)...',
+'loading.thesis.stage.compiling':'Sonuçlar derleniyor ve raporlar kaydediliyor...',
+'thesis.rtt.autoload':'Çalışma alanı görüntüsü yok — Teste Hazır Çift 1 yükleniyor...',
+'thesis.rtt.loading':'Test görüntüleri yükleniyor...',
+'thesis.rtt.autoloaded':'Teste Hazır Çift 1 yüklendi.',
+'thesis.rtt.starting':'Görüntüler yüklendi — tez testi başlatılıyor...',
+'alignment.no.images.title':'Görüntü Gerekli',
+'alignment.no.images.msg':'Alignment Studio\'yu açmadan önce lütfen hem referans hem de örnek görüntü yükleyin.',
+'tb.align.label':'Hiz.:',
+'tb.title.align.mode':'Hizalama Modu — ön işlem yöntemini seçin',
+'tb.title.open.studio':'Alignment Studio\'yu Aç',
+'tb.title.sampling.count':'Örnekleme Sayısı — renk ölçüm noktası sayısı'
 }};
 
 function t(k){return(T[State.lang]||T.en)[k]||(T.en)[k]||k;}
 function translatePage(){
     document.querySelectorAll('[data-i18n]').forEach(function(el){
         var k=el.getAttribute('data-i18n'),v=t(k);
-        if(el.tagName==='OPTION') el.textContent=v;
-        else el.textContent=v;
+        el.textContent=v;
     });
     /* Translate title (tooltip) attributes — use data-tooltip for CSS tooltips, remove native title */
     document.querySelectorAll('[data-i18n-title]').forEach(function(el){
@@ -521,6 +554,31 @@ function initToolbar(){
     sync('tbSizeSlider','tbSizeValue');
     sync('tbHeightSlider','tbHeightValue');
     $('tbRegionControls').classList.toggle('hidden',State.fullImage);
+
+    /* ── Toolbar ⇔ Properties bidirectional sync: Alignment Mode ── */
+    $('tbAlignmentMode').addEventListener('change',function(){
+        if($('propAlignmentMode'))$('propAlignmentMode').value=this.value;
+        scheduleSave();
+    });
+    if($('propAlignmentMode'))$('propAlignmentMode').addEventListener('change',function(){
+        $('tbAlignmentMode').value=this.value;
+    });
+
+    /* ── Toolbar ⇔ Properties bidirectional sync: Sampling Count ── */
+    $('tbSamplingCount').addEventListener('change',function(){
+        var v=Math.max(1,Math.min(100,parseInt(this.value)||5));
+        this.value=v;
+        if($('propRegionCount'))$('propRegionCount').value=v;
+        if($('propPointsCount'))$('propPointsCount').value=v;
+        scheduleSave();
+    });
+    $('tbSamplingCount').addEventListener('blur',function(){
+        var v=Math.max(1,Math.min(100,parseInt(this.value)||5));
+        this.value=v;
+    });
+    if($('propRegionCount'))$('propRegionCount').addEventListener('change',function(){
+        $('tbSamplingCount').value=this.value;
+    });
 }
 
 /* ═══ Ready-to-Test ═══ */
@@ -2134,6 +2192,7 @@ function saveState(){
             propOperator:$('propOperator')?$('propOperator').value:'Operator',
             propTimezone:$('propTimezone')?$('propTimezone').value:'3',
             propReportLang:$('propReportLang')?$('propReportLang').value:'en',
+            propAlignmentMode:$('propAlignmentMode')?$('propAlignmentMode').value:'direct',
             propColorPass:$('propColorPass')?$('propColorPass').value:'2.0',
             propColorCond:$('propColorCond')?$('propColorCond').value:'5.0',
             propColorGlobal:$('propColorGlobal')?$('propColorGlobal').value:'5.0',
@@ -2227,7 +2286,8 @@ function restoreState(){
         if(s.bottomPanelH&&$('bottomPanel'))$('bottomPanel').style.height=s.bottomPanelH;
 
         /* Properties / Settings */
-        var fields=['propOperator','propTimezone','propReportLang','propColorPass','propColorCond',
+        var fields=['propOperator','propTimezone','propReportLang','propAlignmentMode',
+            'propColorPass','propColorCond',
             'propColorGlobal','propCsiGood','propCsiWarn','propRegionCount','propPointsCount',
             'propSamplingMode','propIlluminant','propSsimPass','propSsimCond','propGradPass',
             'propGradCond','propPhasePass','propPhaseCond','propPatternGlobal',
@@ -2235,6 +2295,9 @@ function restoreState(){
             'propColorScoringMethod','propPatternScoringMethod',
             'propStructuralPass','propStructuralCond'];
         fields.forEach(function(f){if(s[f]!==undefined&&$(f))$(f).value=s[f];});
+        /* Sync toolbar quick-access controls from restored property values */
+        if($('tbAlignmentMode')&&$('propAlignmentMode'))$('tbAlignmentMode').value=$('propAlignmentMode').value;
+        if($('tbSamplingCount')&&$('propRegionCount'))$('tbSamplingCount').value=$('propRegionCount').value;
 
         /* Checkboxes */
         if(s.checkboxes){
@@ -2367,62 +2430,83 @@ function runThesisTest(){
         showAlert('Error','Desktop API not available','⚠️');
         return;
     }
-    
+
     log('Starting automated thesis testing...','info');
     log('Collecting current desktop settings...','info');
-    
-    // Collect current settings and region data
+
     var currentSettings=collectSettings();
     var currentRegionData=buildRegionData();
-    
-    // Prepare file information
+
     var refFileInfo=null;
     var sampleFileInfo=null;
-    
     if(State.refFile){
-        refFileInfo={
-            path:State.refFile.path||null,
-            name:State.refFile.name||'reference.png',
-            dataUrl:State.refDataUrl||null
-        };
+        refFileInfo={path:State.refFile.path||null,name:State.refFile.name||'reference.png',dataUrl:State.refDataUrl||null};
     }
-    
     if(State.sampleFile){
-        sampleFileInfo={
-            path:State.sampleFile.path||null,
-            name:State.sampleFile.name||'sample.png',
-            dataUrl:State.sampleDataUrl||null
-        };
+        sampleFileInfo={path:State.sampleFile.path||null,name:State.sampleFile.name||'sample.png',dataUrl:State.sampleDataUrl||null};
     }
-    
-    // Check if we have images or will use fallback
+
     if(!refFileInfo||!sampleFileInfo){
-        log('No workspace images found, will use Ready-to-Test Pair 1 as fallback','warn');
+        /* ── Auto-load Ready-to-Test Pair 1 into viewer slots ── */
+        log(t('thesis.rtt.autoload'),'warn');
+        $('loadingTitle').textContent=t('loading.thesis.title');
+        $('loadingText').textContent=t('thesis.rtt.loading');
+        $('loadingOverlay').style.display='';
+
+        var loaded=0, refRTT=null, sampleRTT=null;
+        function _onBothRTTLoaded(){
+            if(loaded<2)return;
+            /* Populate viewer slots so the layout looks clean */
+            if(State.singleMode){$('tbSingleMode').checked=false;State.singleMode=false;updateUI();}
+            loadImage('ref',refRTT);
+            loadImage('sample',sampleRTT);
+            log(t('thesis.rtt.autoloaded'),'success');
+            $('loadingText').textContent=t('thesis.rtt.starting');
+            /* Proceed after a brief pause so the viewer can render */
+            setTimeout(function(){
+                _proceedWithThesisTest(currentSettings,currentRegionData,
+                    {path:null,name:'1.png',dataUrl:null},
+                    {path:null,name:'2.png',dataUrl:null});
+            },700);
+        }
+        fetchReadyImage('1.png',function(file){refRTT=file;loaded++;_onBothRTTLoaded();});
+        fetchReadyImage('2.png',function(file){sampleRTT=file;loaded++;_onBothRTTLoaded();});
     }else{
         log('Using current workspace images for testing','info');
+        $('loadingTitle').textContent=t('loading.thesis.title');
+        $('loadingText').textContent=t('loading.thesis.stage.init');
+        $('loadingOverlay').style.display='';
+        _proceedWithThesisTest(currentSettings,currentRegionData,refFileInfo,sampleFileInfo);
     }
-    
-    $('loadingTitle').textContent='Running Thesis Tests';
-    $('loadingText').textContent='Executing 3 automated analyses with different alignment modes...';
-    $('loadingOverlay').style.display='';
-    
+}
+
+function _proceedWithThesisTest(currentSettings,currentRegionData,refFileInfo,sampleFileInfo){
+    /* Stage-specific loading messages — update text as each technique runs */
+    var _stageTimers=[];
+    function _clearStageTimers(){_stageTimers.forEach(clearTimeout);_stageTimers=[];}
+    _stageTimers.push(setTimeout(function(){$('loadingText').textContent=t('loading.thesis.stage.direct');},3000));
+    _stageTimers.push(setTimeout(function(){$('loadingText').textContent=t('loading.thesis.stage.ai');},20000));
+    _stageTimers.push(setTimeout(function(){$('loadingText').textContent=t('loading.thesis.stage.bestch');},50000));
+    _stageTimers.push(setTimeout(function(){$('loadingText').textContent=t('loading.thesis.stage.compiling');},75000));
+
     window.pywebview.api.run_thesis_tests(currentSettings,currentRegionData,refFileInfo,sampleFileInfo)
         .then(function(result){
+            _clearStageTimers();
             $('loadingOverlay').style.display='none';
             if(result.success){
                 log('═══ Thesis Test Complete ═══','success');
                 log('Folder: '+result.thesis_folder,'info');
                 log('PDFs: '+result.total_pdfs+' | Images: '+result.total_images,'info');
                 if(result.techniques&&result.techniques.length){
-                    result.techniques.forEach(function(t){
-                        if(t.success){
-                            log('['+t.label+'] Decision='+t.decision
-                                +' | Color='+parseFloat(t.color_score||0).toFixed(1)
-                                +'  Pattern='+parseFloat(t.pattern_score||0).toFixed(1)
-                                +'  PDFs='+t.pdfs_saved+' Images='+t.images_saved
-                                +'  ('+t.duration_seconds+'s)','success');
+                    result.techniques.forEach(function(tech){
+                        if(tech.success){
+                            log('['+tech.label+'] Decision='+tech.decision
+                                +' | Color='+parseFloat(tech.color_score||0).toFixed(1)
+                                +'  Pattern='+parseFloat(tech.pattern_score||0).toFixed(1)
+                                +'  PDFs='+tech.pdfs_saved+' Images='+tech.images_saved
+                                +'  ('+tech.duration_seconds+'s)','success');
                         }else{
-                            log('['+t.label+'] FAILED: '+(t.error||'unknown error'),'error');
+                            log('['+tech.label+'] FAILED: '+(tech.error||'unknown error'),'error');
                         }
                     });
                 }
@@ -2434,15 +2518,53 @@ function runThesisTest(){
             }
         })
         .catch(function(err){
+            _clearStageTimers();
             $('loadingOverlay').style.display='none';
             log('ERROR: '+(err.message||err),'error');
             showAlert('Error',(err.message||String(err)),'❌');
         });
 }
 
+/* ═══ Branded Image-Required Warning Dialog ═══ */
+function _showImageRequiredDialog(title, msg){
+    var overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(5px);z-index:10500;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.15s ease;';
+    var dialog=document.createElement('div');
+    dialog.style.cssText='background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:28px 32px 24px;max-width:400px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,0.6);';
+    var iconRow=document.createElement('div');
+    iconRow.style.cssText='display:flex;align-items:center;gap:12px;margin-bottom:14px;';
+    var iconEl=document.createElement('div');
+    iconEl.innerHTML='<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    var titleEl=document.createElement('h3');
+    titleEl.textContent=title;
+    titleEl.style.cssText='font-size:14px;font-weight:700;color:var(--text);margin:0;';
+    iconRow.appendChild(iconEl);iconRow.appendChild(titleEl);
+    var msgEl=document.createElement('p');
+    msgEl.textContent=msg;
+    msgEl.style.cssText='font-size:12.5px;color:var(--text-dim);margin:0 0 22px 0;line-height:1.55;';
+    var btnRow=document.createElement('div');
+    btnRow.style.cssText='display:flex;justify-content:flex-end;';
+    var okBtn=document.createElement('button');
+    okBtn.textContent=t('btn.ok');
+    okBtn.style.cssText='padding:7px 24px;border-radius:4px;border:none;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:0.02em;transition:opacity 0.15s;';
+    okBtn.addEventListener('mouseenter',function(){okBtn.style.opacity='0.85';});
+    okBtn.addEventListener('mouseleave',function(){okBtn.style.opacity='1';});
+    okBtn.addEventListener('click',function(){document.body.removeChild(overlay);});
+    btnRow.appendChild(okBtn);
+    dialog.appendChild(iconRow);dialog.appendChild(msgEl);dialog.appendChild(btnRow);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    okBtn.focus();
+}
+
 /* ═══ Alignment Studio (v3.0.0) ═══ */
 function openAlignmentStudio(){
     if(typeof AlignmentStudio==='undefined'){log('AlignmentStudio module not loaded','error');return;}
+    if(!State.refFile||!State.sampleFile){
+        log(t('alignment.no.images.title')+': '+t('alignment.no.images.msg'),'warn');
+        _showImageRequiredDialog(t('alignment.no.images.title'),t('alignment.no.images.msg'));
+        return;
+    }
     var refSrc=State.refDataUrl||null;
     var sampleSrc=State.sampleDataUrl||null;
     var refFile=State.refFile||null;

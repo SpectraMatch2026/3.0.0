@@ -3,9 +3,7 @@
  * Version 3.0.0 - With Image Alignment Studio
  */
 
-// ==========================================
 // Application State
-// ==========================================
 var AppState = {
     sessionId: null,
     refFile: null,
@@ -24,24 +22,10 @@ var AppState = {
     samplingMode: 'random' // 'random' or 'manual'
 };
 
-// ==========================================
-// Progress Steps Configuration
-// ==========================================
-var ProgressSteps = {
-    upload: { name: 'Uploading Images', weight: 10 },
-    color: { name: 'Color Analysis', weight: 25 },
-    pattern: { name: 'Pattern Analysis', weight: 25 },
-    repetition: { name: 'Pattern Repetition', weight: 20 },
-    scoring: { name: 'Calculating Scores', weight: 10 },
-    report: { name: 'Generating Report', weight: 10 }
-};
-
 var IlluminantTabOriginalParent = null;
 var IlluminantTabOriginalNextSibling = null;
 
-// ==========================================
 // Point Selector State
-// ==========================================
 var PointSelectorState = {
     isOpen: false,
     mode: 'color', // 'color' or 'single'
@@ -58,11 +42,8 @@ var PointSelectorState = {
 // Help dialog state
 var currentHelpType = null;
 
-// ==========================================
 // Initialize Application
-// ==========================================
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('Textile QC System initialized');
 
     initFileInputs();
     initShapeControls();
@@ -202,9 +183,7 @@ function restoreIlluminantTabLocation() {
     }
 }
 
-// ==========================================
 // Language Switcher (Toggle Switch)
-// ==========================================
 
 
 function updateDynamicTranslations() {
@@ -258,9 +237,7 @@ function updateDynamicTranslations() {
 
 }
 
-// ==========================================
 // File Input Handlers
-// ==========================================
 function initFileInputs() {
     var refInput = document.getElementById('refInput');
     var testInput = document.getElementById('testInput');
@@ -374,17 +351,14 @@ function showImagePreview(prefix, src, fileName) {
             };
             img.src = src;
         } else {
-            console.warn("Preview elements not found for prefix:", prefix);
-        }
+                }
     } catch (e) {
         console.error("Error in showImagePreview:", e);
         throw e;
     }
 }
 
-// ==========================================
 // Shape Controls
-// ==========================================
 function initShapeControls() {
     // Initialize shape dropdown
     initShapeDropdown();
@@ -491,9 +465,7 @@ function initShapeControls() {
     updateShapeOptions();
 }
 
-// ==========================================
 // Shape Dropdown
-// ==========================================
 function initShapeDropdown() {
     var dropdownBtn = document.getElementById('shapeDropdownBtn');
     var dropdownMenu = document.getElementById('shapeDropdownMenu');
@@ -565,9 +537,7 @@ function initShapeDropdown() {
     });
 }
 
-// ==========================================
 // Hint Icon (Question Mark)
-// ==========================================
 function initHintIcon() {
     var hintIcon = document.getElementById('regionHintIcon');
     if (hintIcon) {
@@ -684,9 +654,7 @@ function _toggleInlineHeightGroup(shape) {
     }
 }
 
-// ==========================================
 // Region Shape Settings (in Modal)
-// ==========================================
 function initRegionShapeSettings() {
     // Handle region shape radio buttons in modal
     var regionShapeRadios = document.querySelectorAll('input[name="region_shape"]');
@@ -783,9 +751,7 @@ function showRegionDimensionSettings(shape) {
     if (rectangleSettings) rectangleSettings.style.display = shape === 'rectangle' ? 'block' : 'none';
 }
 
-// ==========================================
 // Modal Region Controls (Advanced Settings)
-// ==========================================
 function initModalRegionControls() {
     // Initialize modal shape selector
     var modalShapeRadios = document.querySelectorAll('input[name="modalShapeType"]');
@@ -1043,9 +1009,7 @@ function updateModalRegionControls() {
     syncMainPageToModal();
 }
 
-// ==========================================
 // Main Page Slider Limits (Adaptive)
-// ==========================================
 function updateMainPageSliderLimits() {
     var slider = document.getElementById('shapeSize');
     if (!slider) return;
@@ -1126,9 +1090,7 @@ function syncSizeSlider(value) {
     updateShapePreview();
 }
 
-// ==========================================
 // Shape Preview
-// ==========================================
 function updateShapePreview() {
     var preview = document.getElementById('shapePreview');
     var shapeName = document.getElementById('previewShapeName');
@@ -1361,9 +1323,7 @@ function initShapePreview() {
     }
 }
 
-// ==========================================
 // Overlay Tracking
-// ==========================================
 function initOverlayTracking() {
     var refPanel = document.getElementById('refPanelContent');
     var testPanel = document.getElementById('testPanelContent');
@@ -1433,9 +1393,7 @@ function updateOverlaySize() {
     });
 }
 
-// ==========================================
 // Button Handlers
-// ==========================================
 function initButtons() {
     var btnSettings = document.getElementById('btnAdvancedSettings');
     if (btnSettings) btnSettings.addEventListener('click', openModal);
@@ -1565,9 +1523,7 @@ function updateButtonStates() {
     if (btnDelete) btnDelete.disabled = !hasImages || AppState.isProcessing;
 }
 
-// ==========================================
 // Single Image Mode
-// ==========================================
 function initSingleImageMode() {
     var checkbox = document.getElementById('singleImageModeToggle');
     if (!checkbox) return;
@@ -1755,9 +1711,7 @@ function updateOverlayVisibility() {
     }
 }
 
-// ==========================================
 // Processing - Sequential Step Execution
-// ==========================================
 function startProcessing() {
     // Check if single image mode is enabled
     if (AppState.analyzeSingleImage) {
@@ -1856,8 +1810,7 @@ function executeSequentialSteps() {
             };
         } else {
             // If we can't get dimensions, we might be stuck. Default to full to avoid crash, but warn?
-            console.warn("Could not determine image dimensions for default crop. Defaulting to full.");
-            regionData = { type: 'full' };
+                    regionData = { type: 'full' };
         }
     }
 
@@ -1909,7 +1862,7 @@ function executeSequentialSteps() {
             setTimeout(function () {
                 hideProgressModal();
                 updateButtonStates();
-                alert('Analysis Error:\n\n' + (error.message || 'Unknown error occurred'));
+                showCustomAlert(I18n.t('analysis.failed') || 'Analysis Error', error.message || 'Unknown error occurred', 'error');
             }, 1500);
         });
 }
@@ -2043,9 +1996,7 @@ function runSequentialAnalysis(formData) {
 
 
 
-// ==========================================
 // Progress Modal - Sequential Steps with Green Checkmarks
-// ==========================================
 
 // Progress state management
 var ProgressState = {
@@ -2066,25 +2017,30 @@ function getEnabledSteps() {
     // Step 1: Upload (always)
     steps.push({ id: 'upload', label: I18n.t('upload.images'), weight: 10 });
 
-    // Step 2: Color Analysis (if enabled)
+    // Step 2: Alignment Preprocessing (when a non-direct mode is active)
+    if (settings.alignment_mode && settings.alignment_mode !== 'direct') {
+        steps.push({ id: 'alignment', label: I18n.t('align.step.preprocessing') || 'Alignment Preprocessing', weight: 12 });
+    }
+
+    // Step 3: Color Analysis (if enabled)
     if (settings.enable_color_unit) {
         steps.push({ id: 'color', label: I18n.t('color.analysis.step'), weight: 25 });
     }
 
-    // Step 3: Pattern Analysis (if enabled)
+    // Step 4: Pattern Analysis (if enabled)
     if (settings.enable_pattern_unit) {
         steps.push({ id: 'pattern', label: I18n.t('pattern.analysis.step'), weight: 25 });
     }
 
-    // Step 4: Pattern Repetition (if enabled)
+    // Step 5: Pattern Repetition (if enabled)
     if (settings.enable_pattern_repetition) {
         steps.push({ id: 'repetition', label: I18n.t('pattern.repetition.step'), weight: 20 });
     }
 
-    // Step 5: Calculate Scores (always)
+    // Step 6: Calculate Scores (always)
     steps.push({ id: 'scoring', label: I18n.t('calculate.scores'), weight: 10 });
 
-    // Step 6: Generate Report (always)
+    // Step 7: Generate Report (always)
     steps.push({ id: 'report', label: I18n.t('generate.report'), weight: 10 });
 
     return steps;
@@ -2246,9 +2202,7 @@ function completeAllSteps() {
     if (pct) pct.textContent = '100%';
 }
 
-// ==========================================
 // Results Display
-// ==========================================
 function displayResults(data) {
     var resultsSection = document.getElementById('resultsSection');
     if (resultsSection) {
@@ -2358,9 +2312,7 @@ function animateScore(valueId, barId, score) {
     }
 }
 
-// ==========================================
 // Detailed Results Panel Builder
-// ==========================================
 
 function buildDetailedResults(data) {
     var area = document.getElementById('webResultsDetail');
@@ -2708,9 +2660,7 @@ function _wrptSvg(type) {
     return '';
 }
 
-// ==========================================
 // Custom Modals (Alerts & Confirms)
-// ==========================================
 
 function showCustomAlert(title, message, type, callback) {
     type = type || 'info'; // info, success, warning, error
@@ -2825,9 +2775,7 @@ function closeCustomModal() {
     if (iconEl) iconEl.className = 'custom-modal-icon';
 }
 
-// ==========================================
 // Delete Images
-// ==========================================
 function deleteImages() {
     showCustomConfirm(
         I18n.t('delete.images') || 'Delete Images',
@@ -2875,15 +2823,11 @@ function deleteImages() {
 
             updateButtonStates();
 
-            // Optional: Success message
-            // showCustomAlert(I18n.t('success') || 'Success', I18n.t('images.deleted') || 'Images deleted successfully', 'success');
         }
     );
 }
 
-// ==========================================
 // Delete Single Image
-// ==========================================
 function deleteImage(type) {
     var prefix = type === 'reference' ? 'ref' : 'test';
     var imageLabel = type === 'reference' ? (I18n.t('reference.image') || 'Reference Image') : (I18n.t('sample.image') || 'Sample Image');
@@ -2946,9 +2890,7 @@ function deleteImage(type) {
     );
 }
 
-// ==========================================
 // Replace Single Image
-// ==========================================
 function replaceImage(type) {
     var inputId = type === 'reference' ? 'refInput' : 'testInput';
     var input = document.getElementById(inputId);
@@ -2982,9 +2924,7 @@ if (typeof RegionSelector !== 'undefined') {
 updateButtonStates();
 
 
-// ==========================================
 // Downloads
-// ==========================================
 function downloadReport() {
     if (AppState.pdfUrl) {
         var fn = AppState.fnFull || 'SpectraMatch_Report.pdf';
@@ -3015,9 +2955,7 @@ function downloadSettings() {
     }
 }
 
-// ==========================================
 // Datasheet Functions
-// ==========================================
 function downloadDatasheet(type) {
     var filename = type === 'en' ? 'Datasheet_EN.pdf' : 'Datasheet_TR.pdf';
     var url = '/static/DataSheets/' + filename;
@@ -3053,9 +2991,7 @@ function closeDatasheetModal() {
     if (modal) modal.style.display = 'none';
 }
 
-// ==========================================
 // Modal
-// ==========================================
 // Track if modal event listeners are already initialized to prevent duplicates
 var modalEventListenersInitialized = false;
 
@@ -3152,7 +3088,6 @@ function saveSettings() {
     // Close modal with full cleanup
     closeModal();
 
-    console.log('Settings saved successfully');
 }
 
 // Reset Settings function (called from HTML onclick)
@@ -3165,13 +3100,22 @@ function resetSettings() {
 }
 
 
-// ==========================================
 // Alignment Studio (v3.0.0)
-// ==========================================
 
 function openAlignmentStudio() {
     if (typeof AlignmentStudio === 'undefined') {
         console.error('AlignmentStudio module not loaded');
+        return;
+    }
+
+    // Validate images before opening — mirrors desktop behaviour
+    var isSingle = !!(AppState && AppState.analyzeSingleImage);
+    var hasRef = !!(AppState && AppState.refFile);
+    var hasSample = !!(AppState && (AppState.testFile || AppState.sampleFile));
+    if (isSingle ? !hasSample : (!hasRef || !hasSample)) {
+        var titleKey = (typeof I18n !== 'undefined') ? (I18n.t('align.images.required.title') || 'Images Required') : 'Images Required';
+        var msgKey   = (typeof I18n !== 'undefined') ? (I18n.t('align.images.required.msg')   || I18n.t('align.no.images') || 'Please upload both images first') : 'Please upload both images first';
+        showCustomAlert(titleKey, msgKey, 'warning');
         return;
     }
 
@@ -3213,9 +3157,7 @@ function openAlignmentStudio() {
     });
 }
 
-// ==========================================
 // Report Language Selector
-// ==========================================
 
 
 function loadDefaultSettings() {
@@ -3234,9 +3176,7 @@ function loadDefaultSettings() {
     AppState.settings = collectSettings();
 }
 
-// ==========================================
 // Settings
-// ==========================================
 function collectSettings() {
     // Get sampling mode
     // If not explicitly tracked in AppState, infer or default to 'random'
@@ -3626,8 +3566,6 @@ function setupPointSelectorCanvas(type, img, canvas, container) {
         };
     }
     
-    console.log('Image setup:', type, 'Natural:', img.naturalWidth, 'x', img.naturalHeight, 
-                'Displayed:', displayedWidth, 'x', displayedHeight, 'Scale:', scaleX, scaleY);
 
     // Redraw existing points
     redrawPointMarkers();
@@ -3649,8 +3587,7 @@ function handlePointSelectorClick(e, source, imgElement) {
     
     // Ensure click is within image bounds
     if (clickX < 0 || clickY < 0 || clickX > imgRect.width || clickY > imgRect.height) {
-        console.warn('Click outside image bounds');
-        return;
+            return;
     }
 
     // Get the correct image info based on source
@@ -3677,8 +3614,7 @@ function handlePointSelectorClick(e, source, imgElement) {
             message,
             'warning'
         );
-        console.warn('Point rejected: outside selected region', pixelX, pixelY);
-        return;
+            return;
     }
 
     // Normalized coordinates (0-1) based on actual image dimensions
@@ -3689,8 +3625,6 @@ function handlePointSelectorClick(e, source, imgElement) {
     var displayX = clickX;
     var displayY = clickY;
 
-    console.log('Point selected:', 'Click:', clickX.toFixed(1), clickY.toFixed(1), 
-                '-> Pixel:', pixelX, pixelY, '(Scale:', imageInfo.scaleX.toFixed(2), imageInfo.scaleY.toFixed(2), ')');
 
     var newPoint = {
         x: normalizedX,
@@ -3960,10 +3894,8 @@ function generateRandomPoints(count) {
     }
     
     if (generatedCount < count) {
-        console.warn('Could only generate', generatedCount, 'of', count, 'random points within region after', attempts, 'attempts');
-    } else {
-        console.log('Generated', generatedCount, 'random points within selected region');
-    }
+        } else {
+        }
 }
 
 // Helper function to get region bounds for efficient random point generation
@@ -4210,9 +4142,7 @@ function clearManualPoints() {
     updateManualPointsStatus();
 }
 
-// ==========================================
 // Settings Modal Logic (Refined)
-// ==========================================
 
 function switchSettingsTab(tabName) {
     // Buttons
@@ -4382,9 +4312,7 @@ function updateSamplingCount(newCount) {
 }
 
 
-// ==========================================
 // Feedback Sidebar
-// ==========================================
 function initFeedbackSidebar() {
     var sidebar = document.getElementById('feedbackSidebar');
     var overlay = document.getElementById('feedbackOverlay');
@@ -4510,9 +4438,7 @@ function initFeedbackSidebar() {
     }
 }
 
-// ==========================================
 // Datasheet Download
-// ==========================================
 function initDatasheetDownload() {
     var btn = document.getElementById('btnDatasheetDownload');
     var dropdown = document.getElementById('datasheetDropdown');
@@ -4538,14 +4464,11 @@ function initDatasheetDownload() {
     items.forEach(function (item) {
         item.addEventListener('click', function () {
             var type = this.getAttribute('data-type');
-            console.log('Download datasheet:', type);
-        });
+                });
     });
 }
 
-// ==========================================
 // Ready-to-Test Images
-// ==========================================
 function _showRttLoader() {
     var overlay = document.getElementById('rttLoaderOverlay');
     if (overlay) overlay.classList.add('active');
@@ -4615,8 +4538,7 @@ function initReadyToTest() {
                         _waitForPreviewLoad('ref', function () {
                             _waitForPreviewLoad('test', function () {
                                 _hideRttLoader();
-                                console.log('RTT: pair loaded');
-                            });
+                                                        });
                         });
                     });
                 });
@@ -4632,8 +4554,7 @@ function initReadyToTest() {
                     handleFileUpload(file, 'sample');
                     _waitForPreviewLoad('test', function () {
                         _hideRttLoader();
-                        console.log('RTT: single image loaded');
-                    });
+                                        });
                 });
             }
         });
@@ -4650,9 +4571,7 @@ function _fetchReadyImage(filename, cb) {
         .catch(function (err) { console.error('RTT: Error loading ' + filename, err); _hideRttLoader(); });
 }
 
-// ==========================================
 // Language Dropdown
-// ==========================================
 function initLanguageDropdown() {
     var btn = document.getElementById('btnLangDropdown');
     var dropdown = document.getElementById('langDropdown');
@@ -4701,9 +4620,7 @@ function initLanguageDropdown() {
     }
 }
 
-// ==========================================
 // Report Language Dropdown
-// ==========================================
 function initReportLanguageDropdown() {
     var container = document.querySelector('.report-lang-dropdown-container');
     var btn = document.getElementById('btnReportLangDropdown');
@@ -4769,9 +4686,7 @@ function initReportLanguageDropdown() {
     }
 }
 
-// ==========================================
 // Help Handlers
-// ==========================================
 function initHelpAndFeedbackHandlers() {
     var helpBtns = document.querySelectorAll('[data-help]');
     helpBtns.forEach(function (btn) {
@@ -4791,9 +4706,7 @@ function initHelpAndFeedbackHandlers() {
     });
 }
 
-// ==========================================
 // Download Fallback Dialog
-// ==========================================
 var _dlFallbackTimer = null;
 
 function showDownloadFallback(e) {
@@ -4849,9 +4762,7 @@ function closeDlFallback() {
     if (overlay) overlay.style.display = 'none';
 }
 
-// ==========================================
 // Settings Input Validation
-// ==========================================
 (function enforceSettingsLimits() {
     document.addEventListener('change', function(e) {
         var el = e.target;
@@ -4866,7 +4777,6 @@ function closeDlFallback() {
 })();
 
 // Contact Popup
-// ==========================================
 function initContactPopup() {
     var btn = document.getElementById('footerContactBtn');
     var popup = document.getElementById('contactPopup');

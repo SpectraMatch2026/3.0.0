@@ -40,3 +40,6 @@ build/
 
 # Byte-compiled
 *.pyc
+
+# Thesis research data (local results, not source code)
+thesis/

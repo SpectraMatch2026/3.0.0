@@ -224,22 +224,64 @@ The Advanced Settings panel is organized into five subsections:
   \item Image alignment mode (preprocessing technique applied before analysis).
 \end{itemize}
 
-\subsubsection{Image Alignment Studio}
-During image capture, minor camera position shifts can introduce small translation, rotation, or scale differences between reference and sample images. These geometric misalignments can artificially inflate color and pattern difference scores. The Alignment Studio provides 10 preprocessing techniques to correct these capture variations before analysis:
+\subsubsection{Image Alignment Preprocessing}
 
-\textbf{Direct Pixel Comparison:} No preprocessing. Use when capture conditions are perfectly controlled.
+In real-world textile inspection, reference and sample images are rarely captured under perfectly identical conditions. Even small differences in camera position, viewing angle, or fabric placement can introduce rotations, scaling differences, or spatial misalignment between the two images. When images are misaligned, pixel-by-pixel comparison becomes unreliable: color difference scores are inflated by geometric offsets rather than genuine color variations, and structural similarity metrics drop at every misaligned boundary.
 
-\textbf{Cascading ECC Registration:} Two-stage intensity-based alignment. Locks translation first, then refines with affine transform if needed. Stable for repetitive textile patterns.
+Version 3.0.0 introduces image alignment as an integrated preprocessing step that runs automatically before the Color Unit and Pattern Unit receive the images. This is one of the most significant improvements in the system: it ensures that comparisons are always made between geometrically consistent regions of the fabric, regardless of how the images were captured. Three methods are available:
 
-\textbf{ORB Affine Alignment:} Feature-based alignment using ORB keypoints with RANSAC. Prefers affine over homography for realistic fabric shifts without perspective distortion.
+\paragraph{Direct Pixel Comparison.}
+No preprocessing is applied. The reference and sample images are compared directly as captured, with only the user-defined region crop applied. This is the standard baseline method, appropriate when images are captured under tightly controlled conditions using a fixed camera mount with consistent framing and scale. It provides the fastest analysis and serves as the reference point against which the other methods can be evaluated.
 
-\textbf{Subpixel Translation:} Pure X/Y shift correction using phase correlation. Fastest technique for translation-only misalignment.
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[width=0.44\textwidth]{align_direct_sample_orig.png} &
+    \includegraphics[width=0.44\textwidth]{align_direct_ref_orig.png} \\[3pt]
+    {\small (1) Original Sample} & {\small (2) Reference Image} \\[8pt]
+    \includegraphics[width=0.44\textwidth]{align_direct_sample_crop.png} &
+    \includegraphics[width=0.44\textwidth]{align_direct_ref_crop.png} \\[3pt]
+    {\small (3) Cropped Sample} & {\small (4) Cropped Reference} \\
+  \end{tabular}
+  \caption{Direct Pixel Comparison --- images are used as captured; only region cropping is applied before analysis.}
+  \label{fig:align_direct}
+\end{figure}
 
-\textbf{Pyramid Coarse-to-Fine:} Multi-scale ECC pyramid. Estimates rough alignment at low resolution, refines at full resolution. Very robust for repetitive weave patterns.
+\paragraph{AI-Based Matching.}
+The AI Smart Match method uses a multi-stage intelligent search to automatically locate and crop the region in the sample image that best corresponds to the reference. The system analyzes the content of both images across multiple scales, identifies the area of highest similarity, and crops both images to that region before analysis begins. This eliminates the effect of camera shifts, scale differences, or partial frame mismatches without requiring any manual adjustment. It is particularly useful when capture conditions cannot be fully standardized across measurements.
 
-\textbf{Tile-Based Local Refinement:} Global ECC translation followed by per-tile phase correlation. Corrects residual local misalignment after global shift.
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[width=0.44\textwidth]{align_ai_sample_orig.png} &
+    \includegraphics[width=0.44\textwidth]{align_ai_ref_orig.png} \\[3pt]
+    {\small (1) Original Sample} & {\small (2) Reference Image} \\[8pt]
+    \includegraphics[width=0.44\textwidth]{align_ai_sample_crop.png} &
+    \includegraphics[width=0.44\textwidth]{align_ai_ref_crop.png} \\[3pt]
+    {\small (3) AI-Matched Sample Crop} & {\small (4) AI-Matched Reference Crop} \\
+  \end{tabular}
+  \caption{AI-Based Matching --- the system automatically identifies and crops the most similar region between the two images.}
+  \label{fig:align_ai}
+\end{figure}
 
-The selected technique is applied automatically during preprocessing. The Alignment Studio allows interactive testing and comparison of techniques before committing to one.
+\paragraph{BESTCH (Best-Channel Matching).}
+BESTCH addresses a different challenge: for repetitive textile patterns such as woven or printed fabrics, evaluating the entire image area is not always necessary or reliable. BESTCH selects a representative region of approximately 25\% of the image area --- the crop that best captures the essential color and pattern characteristics of the fabric. By concentrating the analysis on this representative region, BESTCH reduces the influence of border effects, edge shadows, and areas of non-representative texture. This approach is well-suited for fabrics with regular repeating patterns, where a representative sample area is sufficient to assess overall color and pattern consistency holistically.
+
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[width=0.44\textwidth]{align_bestch_sample_orig.png} &
+    \includegraphics[width=0.44\textwidth]{align_bestch_ref_orig.png} \\[3pt]
+    {\small (1) Original Sample} & {\small (2) Reference Image} \\[8pt]
+    \includegraphics[width=0.44\textwidth]{align_bestch_sample_crop.png} &
+    \includegraphics[width=0.44\textwidth]{align_bestch_ref_crop.png} \\[3pt]
+    {\small (3) BESTCH Selected Region} & {\small (4) BESTCH Reference Region} \\
+  \end{tabular}
+  \caption{BESTCH --- selects the most representative $\sim$25\% region for focused, holistic evaluation of repetitive patterns.}
+  \label{fig:align_bestch}
+\end{figure}
+
+The selected method is applied automatically during preprocessing, before any metric is computed. The Alignment Studio, accessible from the General settings section, allows interactive preview and comparison of all three methods on the loaded images before committing to a selection.
 
 \subsection{Color}
 \begin{itemize}[leftmargin=1.5em]
@@ -1582,16 +1624,16 @@ XYZ        & CIE XYZ Color Space \\
 % ────────────────────────────────────────────────────────────────────────────
 % APPENDIX C — KNOWN LIMITATIONS AND PLANNED IMPROVEMENTS
 % ────────────────────────────────────────────────────────────────────────────
-\chapter{Known Limitations \texorpdfstring{{\small\textcolor{specred}{(v3.0.0)}}}{(v3.0.0)}}
+\chapter{Known Limitations}
 \label{app:limitations}
 
 \vspace{-0.3cm}
 
 \begin{center}
 \begin{tikzpicture}
-  \node[rounded corners=6pt, draw=specred, line width=1.2pt, fill=specred!6, inner sep=10pt, text width=0.88\textwidth, align=center] {
-    {\large\bfseries\textcolor{specred}{\symbol{"26A0}~Planned for v2.3.0 --- Not Yet Implemented~\symbol{"26A0}}}\\[4pt]
-    {\small\textcolor{specdark}{The items listed below are known limitations of SpectraMatch v3.0.0.\\They are documented here for transparency and are scheduled to be addressed in the next release.}}
+  \node[rounded corners=6pt, draw=specorange, line width=1.2pt, fill=specorange!6, inner sep=10pt, text width=0.88\textwidth, align=center] {
+    {\large\bfseries\textcolor{specorange}{\symbol{"26A0}~Pending Improvements}}\\[4pt]
+    {\small\textcolor{specdark}{The items listed below are known limitations of SpectraMatch v3.0.0.\\They are documented here for transparency and are planned to be addressed in a future release.}}
   };
 \end{tikzpicture}
 \end{center}
@@ -1599,7 +1641,7 @@ XYZ        & CIE XYZ Color Space \\
 \vspace{0.4cm}
 
 \noindent\textcolor{specgray}{\small Each item is marked with a status indicator:
-\;\textcolor{specred}{\rule{8pt}{8pt}}\;\textbf{Not implemented}\;---\;feature does not exist in v3.0.0.}
+\;\textcolor{specorange}{\rule{8pt}{8pt}}\;\textbf{Pending}\;---\;feature is not yet available in v3.0.0.}
 
 \vspace{0.6cm}
 
@@ -1673,60 +1715,10 @@ XYZ        & CIE XYZ Color Space \\
 
 \vspace{0.5cm}
 
-% ─── Limitation 3 (Major) ─────────────────────────────────────────────────
-\noindent
-\begin{tikzpicture}
-  \node[rounded corners=4pt, draw=specred, line width=1pt, fill=white, inner sep=0pt, text width=\textwidth] {
-    \begin{minipage}{\textwidth}
-      % Header bar (stronger red for major item)
-      \begin{tikzpicture}
-        \fill[specred!20, rounded corners=4pt] (0,0) rectangle (\textwidth, 0.7cm);
-        \node[anchor=west] at (0.3cm, 0.35cm) {\textcolor{specred}{\scriptsize\textbf{\rule{6pt}{6pt}}}};
-        \node[anchor=west] at (0.7cm, 0.35cm) {\textbf{\textcolor{specred}{L-3\;\;$\vert$\;\;Image Registration (Major Planned Addition)}}};
-        \node[anchor=east] at (\textwidth-0.3cm, 0.35cm) {\scriptsize\textcolor{specred}{\textit{NOT IMPLEMENTED}}};
-      \end{tikzpicture}
-      \vspace{2pt}
-      \begin{minipage}[t]{0.94\textwidth}
-        \centering
-        \small
-        \textbf{Current State:}
-        SpectraMatch v3.0.0 compares the reference and sample images \textbf{pixel by pixel} after cropping to the selected region. There is no geometric alignment step. This means the system assumes that both images are already spatially registered --- captured from the same viewing angle, at the same scale, and with the same framing.
-
-        \medskip
-        \textbf{Limitation:}
-        In real-world use, the reference and sample images are rarely captured under identical geometric conditions. Common differences include:
-        \begin{itemize}[leftmargin=1.5em, topsep=2pt, itemsep=1pt]
-          \item \textbf{Viewing angle} --- the camera may be tilted or rotated between captures.
-          \item \textbf{Scale differences} --- the camera-to-fabric distance may vary, producing different magnifications.
-          \item \textbf{Image size variations} --- different camera resolutions or crop settings.
-          \item \textbf{Translation/shift} --- the fabric may be positioned differently in the frame.
-        \end{itemize}
-        These geometric mismatches propagate into \emph{every} downstream metric: $\Delta E$ values are inflated because misaligned pixels are compared, SSIM drops because structures are shifted, and the structural difference analysis reports false positives at every misaligned boundary.
-
-        \medskip
-        \textbf{Planned Change:}
-        Integrate an \textbf{Image Registration} preprocessing stage before any analysis. The registration pipeline will employ multiple complementary techniques:
-        \begin{enumerate}[leftmargin=1.5em, topsep=2pt, itemsep=1pt]
-          \item \textbf{Feature-based alignment} --- detect keypoints (e.g., ORB, SIFT, or AKAZE), match descriptors between reference and sample, compute a homography matrix, and warp the sample to align with the reference.
-          \item \textbf{Intensity-based alignment} --- use Enhanced Correlation Coefficient (ECC) optimization to refine the geometric transformation by maximizing pixel-level correlation.
-          \item \textbf{Phase-based alignment} --- leverage Fourier phase correlation to estimate and correct translational offsets.
-        \end{enumerate}
-        The registered (aligned) sample will then be passed to the Color Unit and Pattern Unit for pixel-level comparison, significantly reducing errors caused by image capture conditions.
-
-        \medskip
-        \textbf{Impact:} \textcolor{specred}{High --- this is the single most impactful improvement planned for v2.3.0. It addresses the fundamental assumption of pixel-level correspondence and will substantially improve measurement accuracy for real-world image pairs.}
-        \vspace{6pt}
-      \end{minipage}
-    \end{minipage}
-  };
-\end{tikzpicture}
-
-\vspace{0.8cm}
-
 \begin{center}
 \begin{tikzpicture}
   \node[rounded corners=4pt, draw=speclightgray, line width=0.5pt, fill=speclightgray!15, inner sep=8pt, text width=0.85\textwidth, align=center] {
-    {\small\textcolor{specgray}{\textit{This appendix is provided for transparency. The limitations listed above do not affect the validity of results when the system is used within its documented operating assumptions. Users are encouraged to ensure consistent image capture conditions until Image Registration is available in v2.3.0.}}}
+    {\small\textcolor{specgray}{\textit{This appendix is provided for transparency. The limitations listed above do not affect the validity of results when the system is used within its documented operating assumptions.}}}
   };
 \end{tikzpicture}
 \end{center}

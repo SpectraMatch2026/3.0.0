@@ -226,22 +226,64 @@ Gelişmiş Ayarlar paneli beş alt bölüm halinde düzenlenmiştir:
   \item Görüntü hizalama modu (analiz öncesi uygulanan ön işleme tekniği).
 \end{itemize}
 
-\subsubsection{Görüntü Hizalama Stüdyosu}
-Görüntü çekimi sırasında, küçük kamera pozisyon kaymaları referans ve numune görüntüleri arasında küçük öteleme, döndürme veya ölçek farklılıkları oluşturabilir. Bu geometrik hizalama bozuklukları, renk ve desen fark puanlarını yapay olarak şişirebilir. Hizalama Stüdyosu, analiz öncesi bu çekim varyasyonlarını düzeltmek için 10 ön işleme tekniği sağlar:
+\subsubsection{Görüntü Hizalama Ön İşleme}
 
-\textbf{Doğrudan Piksel Karşılaştırma:} Ön işleme yok. Çekim koşulları mükemmel kontrol edildiğinde kullanın.
+Gerçek dünya tekstil incelemesinde, referans ve numune görüntüleri nadiren mükemmel aynı koşullar altında çekilir. Kamera konumu, görüş açısı veya kumaş yerleşimindeki küçük farklılıklar bile iki görüntü arasında dönmeler, ölçek farkları veya uzaysal hizalama bozuklukları oluşturabilir. Görüntüler hizalanmadığında, piksel piksel karşılaştırma güvenilmez hale gelir: renk farkı puanları gerçek renk farklılıkları yerine geometrik kaymalardan şişer ve yapısal benzerlik metrikleri her hizalanmamış sınırda düşer.
 
-\textbf{Kademeli ECC Kaydı:} İki aşamalı yoğunluk tabanlı hizalama. Önce ötelemeyi kilitler, gerekirse afin dönüşümle iyileştirir. Tekrarlayan tekstil desenleri için kararlıdır.
+Sürüm 3.0.0, Renk Birimi ve Desen Birimi görüntüleri almadan önce otomatik olarak çalışan entegre bir ön işleme adımı olarak görüntü hizalamasını tanıtmaktadır. Bu, sistemdeki en önemli iyileştirmelerden biridir: görüntülerin nasıl çekildiğinden bağımsız olarak, karşılaştırmaların her zaman kumaşın geometrik olarak tutarlı bölgeleri arasında yapılmasını sağlar. Üç yöntem mevcuttur:
 
-\textbf{ORB Afin Hizalama:} RANSAC ile ORB anahtar noktaları kullanarak özellik tabanlı hizalama. Perspektif bozulması olmayan gerçekçi kumaş kaymaları için homografi yerine afin tercih eder.
+\paragraph{Doğrudan Piksel Karşılaştırma.}
+Herhangi bir ön işleme uygulanmaz. Referans ve numune görüntüleri, yalnızca kullanıcı tanımlı bölge kırpması uygulanarak çekildiği gibi doğrudan karşılaştırılır. Bu, standart temel yöntemdir; görüntüler sabit kamera desteği kullanılarak tutarlı çerçeveleme ve ölçekle sıkı kontrollü koşullar altında çekildiğinde uygundur. En hızlı analizi sağlar ve diğer yöntemlerin değerlendirilebileceği referans noktası olarak işlev görür.
 
-\textbf{Alt Piksel Öteleme:} Faz korelasyonu kullanarak saf X/Y kayma düzeltmesi. Yalnızca öteleme hizalama bozukluğu için en hızlı teknik.
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[width=0.44\textwidth]{align_direct_sample_orig.png} &
+    \includegraphics[width=0.44\textwidth]{align_direct_ref_orig.png} \\[3pt]
+    {\small (1) Özgün Numune} & {\small (2) Referans Görüntü} \\[8pt]
+    \includegraphics[width=0.44\textwidth]{align_direct_sample_crop.png} &
+    \includegraphics[width=0.44\textwidth]{align_direct_ref_crop.png} \\[3pt]
+    {\small (3) Kırpılmış Numune} & {\small (4) Kırpılmış Referans} \\
+  \end{tabular}
+  \caption{Doğrudan Piksel Karşılaştırma --- görüntüler yalnızca bölge kırpma uygulanarak çekildiği gibi kullanılır.}
+  \label{fig:align_direct}
+\end{figure}
 
-\textbf{Piramit Kaba-İnce:} Çok ölçekli ECC piramidi. Düşük çözünürlükte kaba hizalama tahmin eder, tam çözünürlükte iyileştirir. Tekrarlayan dokuma desenleri için çok dayanıklıdır.
+\paragraph{Yapay Zeka Tabanlı Eşleşme.}
+Yapay Zeka Akıllı Eşleşme yöntemi, numune görüntüsünde referansa en iyi karşılık gelen bölgeyi otomatik olarak belirlemek ve kırpmak için çok aşamalı akıllı bir arama kullanır. Sistem, her iki görüntünün içeriğini birden fazla ölçekte analiz eder, en yüksek benzerlik alanını tespit eder ve analizden önce her iki görüntüyü bu bölgeye kırpar. Bu, herhangi bir manuel ayar gerektirmeksizin kamera kaymalarının, ölçek farklarının veya kısmi çerçeve uyumsuzluklarının etkisini ortadan kaldırır. Çekim koşullarının ölçümler arasında tam olarak standartlaştırılamadığı durumlarda özellikle kullanışlıdır.
 
-\textbf{Karo Tabanlı Yerel İyileştirme:} Genel ECC ötelemesi ardından karo başına faz korelasyonu. Genel kaymadan sonra kalan yerel hizalama bozukluğunu düzeltir.
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[width=0.44\textwidth]{align_ai_sample_orig.png} &
+    \includegraphics[width=0.44\textwidth]{align_ai_ref_orig.png} \\[3pt]
+    {\small (1) Özgün Numune} & {\small (2) Referans Görüntü} \\[8pt]
+    \includegraphics[width=0.44\textwidth]{align_ai_sample_crop.png} &
+    \includegraphics[width=0.44\textwidth]{align_ai_ref_crop.png} \\[3pt]
+    {\small (3) YZ Eşleşmeli Numune Kırpması} & {\small (4) YZ Eşleşmeli Referans Kırpması} \\
+  \end{tabular}
+  \caption{Yapay Zeka Tabanlı Eşleşme --- sistem, iki görüntü arasında en benzer bölgeyi otomatik olarak tespit eder ve kırpar.}
+  \label{fig:align_ai}
+\end{figure}
 
-Seçilen teknik, ön işleme sırasında otomatik olarak uygulanır. Hizalama Stüdyosu, bir tekniğe karar vermeden önce tekniklerin etkileşimli test edilmesine ve karşılaştırılmasına olanak tanır.
+\paragraph{BESTCH (En İyi Kanal Eşleşmesi).}
+BESTCH farklı bir zorluğu ele alır: dokuma veya baskılı kumaşlar gibi tekrarlayan tekstil desenleri için, görüntü alanının tamamını değerlendirmek her zaman gerekli veya güvenilir değildir. BESTCH, görüntü alanının yaklaşık \%25'ini oluşturan temsili bir bölge --- kumaşın temel renk ve desen özelliklerini en iyi yakalayan kırpmayı --- seçer. Analizin tam görüntü yerine bu temsili bölgeye yoğunlaştırılması, kenar efektleri, kenar gölgeleri ve temsil edilmeyen doku alanlarının etkisini azaltır. Bu yaklaşım, düzenli tekrarlayan desenlere sahip kumaşlar için uygundur; temsili bir örnek alan, genel renk ve desen tutarlılığını bütünsel olarak değerlendirmek için yeterlidir.
+
+\begin{figure}[H]
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[width=0.44\textwidth]{align_bestch_sample_orig.png} &
+    \includegraphics[width=0.44\textwidth]{align_bestch_ref_orig.png} \\[3pt]
+    {\small (1) Özgün Numune} & {\small (2) Referans Görüntü} \\[8pt]
+    \includegraphics[width=0.44\textwidth]{align_bestch_sample_crop.png} &
+    \includegraphics[width=0.44\textwidth]{align_bestch_ref_crop.png} \\[3pt]
+    {\small (3) BESTCH Seçili Bölge} & {\small (4) BESTCH Referans Bölgesi} \\
+  \end{tabular}
+  \caption{BESTCH --- odaklanmış, bütünsel değerlendirme için en temsili $\sim$\%25'lik bölgeyi seçer.}
+  \label{fig:align_bestch}
+\end{figure}
+
+Seçilen yöntem, herhangi bir metrik hesaplanmadan önce ön işleme sırasında otomatik olarak uygulanır. Genel ayarlar bölümünden erişilebilen Hizalama Stüdyosu, bir seçime karar vermeden önce yüklenen görüntüler üzerinde üç yöntemin de etkileşimli önizlemesine ve karşılaştırılmasına olanak tanır.
 
 \subsection{Renk}
 \begin{itemize}[leftmargin=1.5em]
@@ -1580,77 +1622,6 @@ XYZ        & CIE XYZ Renk Uzayı \\
 \end{longtable}
 
 \restoregeometry
-
-% ────────────────────────────────────────────────────────────────────────────
-% EK C — BİLİNEN SINIRLAMALAR VE PLANLANAN İYİLEŞTİRMELER
-% ────────────────────────────────────────────────────────────────────────────
-\chapter{Bilinen Sınırlamalar \texorpdfstring{{\small\textcolor{specred}{(v3.0.0)}}}{(v3.0.0)}}
-\label{app:limitations}
-
-\vspace{-0.3cm}
-
-\begin{center}
-\begin{tikzpicture}
-  \node[rounded corners=6pt, draw=specred, line width=1.2pt, fill=specred!6, inner sep=10pt, text width=0.88\textwidth, align=center] {
-    {\large\bfseries\textcolor{specred}{\symbol{"26A0}~v2.3.0 İçin Planlanmış --- Henüz Uygulanmadı~\symbol{"26A0}}}\\[4pt]
-    {\small\textcolor{specdark}{Aşağıda, projede şu anda eksik olan ve eklenmesi planlanan bir teknik sunulmaktadır. Bu teknik, projeyi yeni bir yükseltme seviyesi olan v2.3.0 sürümüne taşıyacaktır.
-}}
-  };
-\end{tikzpicture}
-\end{center}
-
-
-
-% ─── Sınırlama 3 (Ana) ─────────────────────────────────────────────────
-\noindent
-\begin{tikzpicture}
-  \node[rounded corners=4pt, draw=specred, line width=1pt, fill=white, inner sep=0pt, text width=\textwidth] {
-    \begin{minipage}{\textwidth}
-      % Başlık çubuğu (ana madde için daha güçlü kırmızı)
-      \begin{tikzpicture}
-        \fill[specred!20, rounded corners=4pt] (0,0) rectangle (\textwidth, 0.7cm);
-        \node[anchor=west] at (0.3cm, 0.35cm) {\textcolor{specred}{\scriptsize\textbf{\rule{6pt}{6pt}}}};
-        \node[anchor=west] at (0.7cm, 0.35cm) {\textbf{\textcolor{specred}{L-3\;\;$\vert$\;\;Görüntü Tescili (Ana Planlanan Ekleme)}}};
-        \node[anchor=east] at (\textwidth-0.3cm, 0.35cm) {\scriptsize\textcolor{specred}{\textit{UYGULANMADI}}};
-      \end{tikzpicture}
-      \vspace{2pt}
-      \begin{minipage}[t]{0.94\textwidth}
-        \centering
-        \small
-        \textbf{Mevcut Durum:}
-        SpectraMatch v3.0.0, referans ve numune görüntülerini seçilen bölgeye kırptıktan sonra \textbf{piksel piksel} karşılaştırır. Geometrik hizalama adımı yoktur. Bu, sistemin her iki görüntünün zaten uzaysal olarak tescilli olduğunu --- aynı görüş açısından, aynı ölçekte ve aynı çerçevelemeyle çekildiğini --- varsaydığı anlamına gelir.
-
-        \medskip
-        \textbf{Sınırlama:}
-        Gerçek kullanımda, referans ve numune görüntüleri nadiren aynı geometrik koşullar altında çekilir. Yaygın farklar şunlardır:
-        \begin{itemize}[leftmargin=1.5em, topsep=2pt, itemsep=1pt]
-          \item \textbf{Görüş açısı} --- kamera, çekimler arasında eğilmiş veya döndürülmüş olabilir.
-          \item \textbf{Ölçek farkları} --- kamera-kumaş mesafesi değişebilir, farklı büyütmeler üretir.
-          \item \textbf{Görüntü boyutu farklılıkları} --- farklı kamera çözünürlükleri veya kırpma ayarları.
-          \item \textbf{Öteleme/kayma} --- kumaş çerçevede farklı konumlandırılmış olabilir.
-        \end{itemize}
-        Bu geometrik uyumsuzluklar \emph{tüm} aşağı akış metriklerine yayılır: hizalanmamış pikseller karşılaştırıldığı için $\Delta E$ değerleri şişer, yapılar kaydığı için SSIM düşer ve yapısal fark analizi her hizalanmamış sınırda yanlış pozitifler raporlar.
-
-        \medskip
-        \textbf{Planlanan Değişiklik:}
-        Herhangi bir analizden önce bir \textbf{Görüntü Tescili} ön işleme aşamasının entegre edilmesi. Tescil hattı birden fazla tamamlayıcı teknik kullanacaktır:
-        \begin{enumerate}[leftmargin=1.5em, topsep=2pt, itemsep=1pt]
-          \item \textbf{Özellik tabanlı hizalama} --- anahtar noktaları tespit etme (örn. ORB, SIFT veya AKAZE), referans ile numune arasında tanımlayıcıları eşleme, bir homografi matrisi hesaplama ve numuneyi referansla hizalamak üzere çarpıtma.
-          \item \textbf{Yoğunluk tabanlı hizalama} --- piksel düzeyinde korelasyonu maksimize ederek geometrik dönüşümü iyileştirmek için Geliştirilmiş Korelasyon Katsayısı (ECC) optimizasyonu kullanma.
-          \item \textbf{Faz tabanlı hizalama} --- öteleme ofsetlerini tahmin etmek ve düzeltmek için Fourier faz korelasyonundan yararlanma.
-        \end{enumerate}
-        Tescilli (hizalanmış) numune, daha sonra piksel düzeyinde karşılaştırma için Renk Birimi ve Desen Birimine aktarılacak ve görüntü çekim koşullarından kaynaklanan hatalar önemli ölçüde azaltılacaktır.
-
-        \medskip
-        \textbf{Etki:} \textcolor{specred}{Yüksek --- bu, v2.3.0 için planlanan en etkili tek iyileştirmedir. Piksel düzeyinde karşılığın temel varsayımını ele alır ve gerçek dünya görüntü çiftleri için ölçüm doğruluğunu önemli ölçüde artıracaktır.}
-        \vspace{6pt}
-      \end{minipage}
-    \end{minipage}
-  };
-\end{tikzpicture}
-
-\vspace{0.8cm}
-
 
 % ════════════════════════════════════════════════════════════════════════════
 % KAPANIŞ KAPAK SAYFASI

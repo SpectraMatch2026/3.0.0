@@ -496,6 +496,7 @@ var I18n = {
 
             // Progress Steps
             'upload.images': 'Upload Images',
+            'align.step.preprocessing': 'Alignment Preprocessing',
             'color.analysis.step': 'Color Analysis',
             'pattern.analysis.step': 'Pattern Analysis',
             'pattern.repetition.step': 'Pattern Repetition',
@@ -503,6 +504,9 @@ var I18n = {
             'generate.report': 'Generate Report',
             'step.failed': 'Step failed',
             'analysis.failed': 'Analysis failed',
+            'align.images.required.title': 'Images Required',
+            'align.images.required.msg': 'Please upload both a reference and a sample image before opening Alignment Studio.',
+            'align.images.required.msg.single': 'Please upload an image before opening Alignment Studio',
 
             // Source Code Help
             'what.is.python': 'What is a Python (.py) file?',
@@ -1212,6 +1216,7 @@ var I18n = {
 
             // Progress Steps
             'upload.images': 'Görüntüleri Yükle',
+            'align.step.preprocessing': 'Hizalama Ön İşlemi',
             'color.analysis.step': 'Renk Analizi',
             'pattern.analysis.step': 'Desen Analizi',
             'pattern.repetition.step': 'Desen Tekrarı',
@@ -1219,6 +1224,9 @@ var I18n = {
             'generate.report': 'Rapor Oluştur',
             'step.failed': 'Adım başarısız',
             'analysis.failed': 'Analiz başarısız',
+            'align.images.required.title': 'Görüntü Gerekli',
+            'align.images.required.msg': 'Alignment Studio\'yu açmadan önce lütfen hem referans hem de örnek görüntü yükleyin.',
+            'align.images.required.msg.single': 'Alignment Studio\'yu açmadan önce lütfen bir görüntü yükleyin',
 
             // Source Code Help
             'what.is.python': 'Python (.py) dosyası nedir?',

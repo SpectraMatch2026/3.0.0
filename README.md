@@ -29,6 +29,7 @@ The system is developed as part of ongoing research at the **Department of Elect
 
 - **Color Analysis** — Computes CIE ΔE2000 color difference across user-defined sampling points, with support for multiple illuminants (D65, D50, A, C, F2, TL84) and color spaces (CIELAB, sRGB, CMYK, XYZ).
 - **Pattern Analysis** — Evaluates structural similarity (SSIM), GLCM texture features, Fourier-domain frequency analysis, and phase correlation between reference and sample images.
+- **Image Alignment Preprocessing** — Integrated preprocessing step that runs before analysis to handle geometric misalignment between captures. Three methods: Direct Pixel (baseline), AI-Based Matching (multi-scale intelligent crop), and BESTCH (representative 25% region selection for repetitive patterns).
 - **Single Image Analysis** — Standalone mode for analyzing a single image's color distribution, texture uniformity, and defect indicators without a reference.
 - **Region Selection** — Interactive region-of-interest tools including circle, square, rectangle, and freehand polygon (pen) selection with real-time visual overlay.
 - **Sampling Configuration** — Configurable N-point sampling with manual placement, random generation, or hybrid workflows. Points are validated against the selected region.
@@ -51,7 +52,7 @@ Both interfaces share the same backend (`app.py`) and analysis modules. The desk
 ### Project Structure
 
 ```
-SPECTRAMATCH2026_feb/
+SPECTRAMATCH_PROJECT/
 ├── app.py                      # Flask application (routes, API endpoints)
 ├── wsgi.py                     # WSGI entry point for production deployment
 ├── requirements.txt            # Python dependencies
@@ -61,6 +62,7 @@ SPECTRAMATCH2026_feb/
 │   ├── ColorUnitBackend.py     # Color difference analysis (ΔE2000, CIELAB, illuminants)
 │   ├── PatternUnitBackend.py   # Pattern analysis (SSIM, GLCM, FFT, phase correlation)
 │   ├── SingleImageUnitBackend.py  # Single-image standalone analysis
+│   ├── ImageAlignmentBackend.py   # Image alignment preprocessing (Direct, AI, BESTCH)
 │   ├── RecommendationsEngine.py   # Threshold-aware findings & recommendations
 │   ├── ReportTranslations.py   # Bilingual translation dictionary for PDF reports
 │   ├── ReportUtils.py          # Shared PDF styling, constants, and utilities
@@ -75,15 +77,16 @@ SPECTRAMATCH2026_feb/
 │   └── splash.html             # Desktop splash screen
 │
 └── static/
-    ├── css/                    # Stylesheets (main.css, shape-dropdown.css, image-actions.css)
+    ├── css/                    # Stylesheets
     ├── js/                     # Client-side JavaScript
     │   ├── app.js              # Main application logic and UI controller
+    │   ├── alignment-studio.js # Interactive alignment preview and testing
     │   ├── region-selector.js  # Interactive region selection on images
     │   ├── region-validator.js # Point-in-region validation (circle, rect, polygon)
     │   ├── i18n.js             # Internationalization (EN/TR translations)
     │   └── development-modal.js
     ├── images/                 # Logos and flag icons
-    ├── DataSheets/             # Technical datasheets (EN/TR PDFs)
+    ├── DataSheets/             # Technical datasheets (EN/TR)
     ├── READYTOTEST/            # Built-in sample images for quick testing
     └── Animation/              # Loading animation assets
 ```
@@ -105,6 +108,7 @@ SPECTRAMATCH2026_feb/
 
 ### Pattern Unit
 
+0. **Alignment preprocessing** runs first (if a non-direct mode is selected): the AI method crops the most similar region, or BESTCH selects a representative ~25% region.
 1. Both images are converted to grayscale.
 2. **SSIM** (Structural Similarity Index) is computed with a sliding window.
 3. **GLCM** (Gray-Level Co-occurrence Matrix) texture features are extracted: contrast, dissimilarity, homogeneity, energy, correlation.
@@ -227,6 +231,7 @@ Analysis parameters are configurable through the Advanced Settings modal:
 | Report Language | Language for PDF output | English |
 | Operator | Operator name for reports | — |
 | Timezone | UTC offset for timestamps | +3 |
+| Alignment Mode | Preprocessing method before analysis | Direct Pixel |
 
 ---
 

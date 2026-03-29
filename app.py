@@ -76,7 +76,6 @@ def start_cleanup_scheduler():
     cleanup_thread = threading.Thread(target=cleanup_loop, daemon=True)
     cleanup_thread.start()
 
-# Run initial cleanup on startup and start scheduler
 cleanup_old_temp_files()
 start_cleanup_scheduler()
 
@@ -86,7 +85,6 @@ def crop_image(image, region_data):
     If type is circle, mask out the area outside the circle.
     If type is rect/square, we still ensure the area is cleanly cropped.
     """
-    print(f"crop_image: region_data={region_data}")
     if not region_data or region_data.get('type') == 'full':
         return image
         
@@ -358,7 +356,6 @@ def analyze():
         from pypdf import PdfWriter
         from modules import ColorUnitBackend, PatternUnitBackend, SettingsReceipt, SingleImageUnitBackend
 
-        # Load images
         sample_bytes = sample_file.read()
         sample_arr = np.frombuffer(sample_bytes, np.uint8)
         sample_img = cv2.imdecode(sample_arr, cv2.IMREAD_COLOR)
@@ -389,7 +386,6 @@ def analyze():
         
         if region_data and region_data.get('type') != 'full' and region_data.get('use_crop'):
             try:
-                # Raw inputs
                 rx = int(float(region_data.get('x', 0)))
                 ry = int(float(region_data.get('y', 0)))
                 rw = int(float(region_data.get('width', img_w)))
@@ -412,7 +408,6 @@ def analyze():
                     r = min(rw, rh) // 2
                     region_geometry = {'type': 'circle', 'cx': cx, 'cy': cy, 'r': r}
                 else:
-                    # Rect defined by x,y,w,h
                     region_geometry = {'type': 'rect', 'x': rx, 'y': ry, 'w': rw, 'h': rh}
                     
             except Exception as e:
@@ -431,7 +426,7 @@ def analyze():
         if not single_image_mode:
             ref_img_proc = crop_image(ref_img, region_data)
         
-        # ── Image Alignment Preprocessing (v3.0.0) ──
+        # Image alignment preprocessing
         alignment_mode = settings.get('alignment_mode', 'direct')
         alignment_metrics = {'applied': False, 'method': 'direct'}
         if not single_image_mode and alignment_mode != 'direct':
@@ -445,9 +440,7 @@ def analyze():
                     if align_result.get('ref_cropped') is not None:
                         ref_img_proc = align_result['ref_cropped']
                     alignment_metrics = align_result['metrics']
-                    print(f"Alignment applied: {alignment_mode} — {alignment_metrics.get('description', '')}")
                 else:
-                    print(f"Alignment not applied ({alignment_mode}): {alignment_metrics.get('reason', 'N/A')}")
                     alignment_metrics = align_result['metrics']
             except Exception as e:
                 print(f"Alignment preprocessing error: {e}")
@@ -461,8 +454,6 @@ def analyze():
         pattern_pdf = os.path.join(temp_dir, f"{session_id}_pattern.pdf")
         merged_pdf = os.path.join(temp_dir, f"{session_id}_report.pdf")
         
-        # 0. Generate Consistent Metadata
-        # Use timezone from settings (default to +3 matching UI default)
         try:
             tz_offset = float(settings.get('timezone_offset', 3))
         except:
@@ -480,8 +471,6 @@ def analyze():
 
         if single_image_mode:
             # --- Single Image Mode Pipeline ---
-            print("Running Single Image Analysis...")
-            
             # Use merged_pdf path for the single report
             SingleImageUnitBackend.analyze_and_generate(
                 sample_img_proc, settings, merged_pdf, 
@@ -533,11 +522,9 @@ def analyze():
             # --- Existing Two-Image Pipeline ---
             
             # 1. Color Analysis
-            print("Running Color Analysis...")
             _, color_results = ColorUnitBackend.analyze_and_generate(ref_img_proc, sample_img_proc, settings, color_pdf, report_id=analysis_id, timestamp=timestamp)
             
             # 2. Pattern Analysis
-            print("Running Pattern Analysis...")
             _, pattern_results = PatternUnitBackend.analyze_and_generate(ref_img_proc, sample_img_proc, settings, pattern_pdf, report_id=analysis_id, timestamp=timestamp, is_combined=True)
             
             
@@ -559,7 +546,7 @@ def analyze():
             op_name = settings.get('operator', 'Operator')
             c_points = color_results.get('sampled_points', [])
             
-            # === Color Score Calculation ===
+            # Color score calculation
             color_scoring_method = settings.get('color_scoring_method', 'delta_e')
             mean_de = color_results.get('mean_de00', 0)
             csi_val = color_results.get('csi_value', 0)
@@ -593,7 +580,7 @@ def analyze():
                 c_status = color_results.get('overall_status', 'FAIL')
                 color_method_label = 'DeltaEP2000%'
             
-            # === Pattern Score Calculation ===
+            # Pattern score calculation
             pattern_scoring_method = settings.get('pattern_scoring_method', 'all')
             all_pattern_scores = pattern_results.get('scores', {})
             composite_score = pattern_results.get('composite_score', 0)
@@ -638,12 +625,12 @@ def analyze():
             else:
                 decision = 'CONDITIONAL'
     
-            # 4. Generate Settings Receipt (Moved after scores)
+            # Settings receipt
             SettingsReceipt.generate_receipt(
                 receipt_pdf,
                 settings,
                 processed_imgs_for_receipt,
-                analysis_id, # Use Consistent ID
+                analysis_id,
                 op_name,
                 date_str,
                 time_str,
@@ -651,13 +638,10 @@ def analyze():
                 pattern_score=pattern_score,
                 overall_score=overall_score,
                 decision=decision,
-                software_version="3.0.0" 
+                software_version="3.0.0"
             )
                 
-            print(f"Analysis Complete: Color={color_score:.1f}, Pattern={pattern_score:.1f}, Decision={decision}")
-            
             # 5. Generate Unified Cover and Merge PDFs
-            print("Generating unified cover and merging PDFs...")
             cover_pdf = os.path.join(temp_dir, f"{session_id}_cover.pdf")
             
             color_data_for_cover = {
@@ -699,13 +683,10 @@ def analyze():
             merger.write(merged_pdf)
             merger.close()
             
-            # Calculate sizes
             size_merged = os.path.getsize(merged_pdf) / (1024 * 1024)
             size_color = os.path.getsize(color_pdf) / (1024 * 1024) if os.path.exists(color_pdf) else 0
             size_pattern = os.path.getsize(pattern_pdf) / (1024 * 1024) if os.path.exists(pattern_pdf) else 0
             
-            # Build detailed results for frontend inline display
-            # Color details
             def _safe_lab(d):
                 return [round(float(v), 2) for v in d.get('lab', [0,0,0])]
             def _safe_rgb(d):
@@ -729,13 +710,11 @@ def analyze():
                     'sam_rgb': _safe_rgb(sam_d),
                 })
             
-            # Pattern details
             pattern_scores = {}
             for k, v in pattern_results.get('scores', {}).items():
                 pattern_scores[k] = round(float(v), 2)
             
             # Generate visualization images for frontend display
-            print("Saving visualization images...")
             viz_urls = _save_visualization_images(session_id, ref_img_proc, sample_img_proc, color_results, pattern_results, settings)
             
             # Structural diff metadata
@@ -746,9 +725,11 @@ def analyze():
                     'similarity_score': round(float(structural.get('similarity_score', 0)), 2),
                     'verdict': structural.get('verdict', ''),
                     'change_percentage': round(float(structural.get('change_percentage', 0)), 4),
+                    'total_pixels': int(structural.get('total_pixels', 0)),
+                    'changed_pixels': int(structural.get('changed_pixels', 0)),
                 }
 
-            # ── ΔE Summary Statistics (for frontend display) ──
+            # ΔE summary statistics
             de_statistics = {}
             if reg_stats_safe:
                 import numpy as np
@@ -763,7 +744,7 @@ def analyze():
                         'max': round(float(np.max(vals)), 4),
                     }
 
-            # ── Illuminant Analysis Data (for frontend display) ──
+            # Illuminant analysis data
             illuminant_data = []
             try:
                 from modules.ColorUnitBackend import adapt_to_illuminant, xyz_to_lab, deltaE2000, WHITE_POINTS
@@ -809,7 +790,7 @@ def analyze():
             except Exception as e:
                 print(f"Error computing illuminant data for frontend: {e}")
 
-            # ── Recommendations & Conclusion (for frontend display) ──
+            # Recommendations and conclusions
             color_findings = []
             color_conclusion_text = ''
             color_conclusion_status = ''
@@ -846,7 +827,79 @@ def analyze():
             except Exception as e:
                 print(f"Error generating recommendations for frontend: {e}")
 
-            # ── Color Averages (for frontend display) ──
+            # Fourier analysis data
+            fourier_data = {}
+            try:
+                fourier_res = pattern_results.get('fourier_results')
+                if fourier_res:
+                    def _fda_scalars(fda):
+                        if not fda:
+                            return {}
+                        return {
+                            'fundamental_period': round(float(fda.get('fundamental_period', 0)), 4),
+                            'dominant_orientation': round(float(fda.get('dominant_orientation', 0)), 4),
+                            'anisotropy': round(float(fda.get('anisotropy', 1)), 4),
+                            'peaks': [
+                                {
+                                    'radius': round(float(p['radius']), 4),
+                                    'angle': round(float(p['angle']), 4),
+                                    'magnitude': round(float(p['magnitude']), 4),
+                                    'px': int(p['px']),
+                                    'py': int(p['py']),
+                                }
+                                for p in fda.get('peaks', [])
+                            ],
+                        }
+                    fourier_data = {
+                        'sample': _fda_scalars(fourier_res.get('sample')),
+                        'ref': _fda_scalars(fourier_res.get('ref')),
+                        'fundamental_period': round(float(fourier_res.get('fundamental_period', 0)), 4),
+                        'dominant_orientation': round(float(fourier_res.get('dominant_orientation', 0)), 4),
+                        'anisotropy': round(float(fourier_res.get('anisotropy', 1)), 4),
+                        'peaks': [
+                            {
+                                'radius': round(float(p['radius']), 4),
+                                'angle': round(float(p['angle']), 4),
+                                'magnitude': round(float(p['magnitude']), 4),
+                                'px': int(p['px']),
+                                'py': int(p['py']),
+                            }
+                            for p in fourier_res.get('peaks', [])
+                        ],
+                    }
+            except Exception as e:
+                print(f"Error extracting fourier data: {e}")
+
+            # GLCM texture data
+            glcm_data = {}
+            try:
+                glcm_res = pattern_results.get('glcm_results')
+                if glcm_res:
+                    def _glcm_props(g):
+                        if not g:
+                            return {}
+                        return {k: round(float(v), 6) for k, v in g.get('properties', {}).items()}
+                    glcm_data = {
+                        'ref': _glcm_props(glcm_res.get('ref')),
+                        'sample': _glcm_props(glcm_res.get('sample')),
+                    }
+            except Exception as e:
+                print(f"Error extracting GLCM data: {e}")
+
+            # Color sampling metadata
+            color_sampling_points = []
+            try:
+                for pt in color_results.get('points', []):
+                    if isinstance(pt, (list, tuple)) and len(pt) >= 2:
+                        color_sampling_points.append({
+                            'x': int(pt[0]),
+                            'y': int(pt[1]),
+                            'is_manual': bool(pt[2]) if len(pt) > 2 else False,
+                        })
+            except Exception as e:
+                print(f"Error extracting color sampling points: {e}")
+
+            # Color averages
             color_averages = {}
             try:
                 raw_reg_stats = color_results.get('reg_stats', [])
@@ -908,6 +961,10 @@ def analyze():
                 'color_averages': color_averages,
                 'alignment_mode': alignment_mode,
                 'alignment_metrics': alignment_metrics,
+                'fourier_data': fourier_data,
+                'glcm_data': glcm_data,
+                'color_sampling_radius': int(color_results.get('r', 0)),
+                'color_sampling_points': color_sampling_points,
                 'fn_full': f"{analysis_id}{_lang_suffix}.pdf",
                 'fn_color': f"{analysis_id}R{_lang_suffix}.pdf",
                 'fn_pattern': f"{analysis_id}D{_lang_suffix}.pdf",

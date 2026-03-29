@@ -150,6 +150,29 @@
                 <span class="tb-toggle-label" data-i18n="tb.single">Single Image</span>
             </label>
         </div>
+        <div class="tb-sep"></div>
+        <!-- Alignment Mode — toolbar quick access -->
+        <div class="tb-group">
+            <span class="tb-label" data-i18n="tb.align.label">Align:</span>
+            <select class="tb-select" id="tbAlignmentMode" data-i18n-title="tb.title.align.mode" title="Alignment Mode">
+                <option value="direct">Direct</option>
+                <option value="ai_smart_match">AI Smart</option>
+                <option value="bestch">BESTCH</option>
+            </select>
+            <button class="tb-btn tb-icon-btn tb-studio-btn" id="tbOpenStudio"
+                    data-i18n-title="tb.title.open.studio" title="Open Alignment Studio"
+                    onclick="Desktop.openAlignmentStudio()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/></svg>
+            </button>
+        </div>
+        <div class="tb-sep"></div>
+        <!-- Sampling Count — toolbar quick access -->
+        <div class="tb-group">
+            <span class="tb-label" data-i18n-title="tb.title.sampling.count" title="Sampling Count">N:</span>
+            <input type="number" id="tbSamplingCount" class="tb-num tb-num-sm"
+                   value="5" min="1" max="100"
+                   data-i18n-title="tb.title.sampling.count" title="Sampling Count">
+        </div>
         <div class="tb-spacer"></div>
         <div class="tb-group">
             <div class="tb-ready-test-wrap">

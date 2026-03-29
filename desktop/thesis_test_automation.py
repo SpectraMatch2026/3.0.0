@@ -1,29 +1,29 @@
-﻿"""
+"""
 Thesis Test Automation - Professional Data Extraction & Organization
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+--------------------------------------------------------------------
 Runs each alignment technique against the current images, downloads
 all PDFs, images, and structured data, organized per-technique.
 
 Output structure (one timestamped run folder per execution):
 
   thesis/
-  â””â”€â”€ run_YYYY-MM-DD_HH-MM-SS/
-      â”œâ”€â”€ Master_Index.json
-      â”œâ”€â”€ Direct_Pixel/
-      â”‚   â”œâ”€â”€ PDFs/
-      â”‚   â”‚   â”œâ”€â”€ Full_Report.pdf
-      â”‚   â”‚   â”œâ”€â”€ Color_Report.pdf
-      â”‚   â”‚   â”œâ”€â”€ Pattern_Report.pdf
-      â”‚   â”‚   â””â”€â”€ Settings_Receipt.pdf
-      â”‚   â”œâ”€â”€ Images/
-      â”‚   â”‚   â”œâ”€â”€ heatmap.png
-      â”‚   â”‚   â”œâ”€â”€ spectral.png
-      â”‚   â”‚   â””â”€â”€ ...
-      â”‚   â””â”€â”€ Data.json
-      â”œâ”€â”€ AI_SmartMatch/
-      â”‚   â””â”€â”€ ...
-      â””â”€â”€ BESTCH/
-          â””â”€â”€ ...
+  +--- run_YYYY-MM-DD_HH-MM-SS/
+      +--- Master_Index.json
+      +--- Direct_Pixel/
+      |   +--- PDFs/
+      |   |   +--- Full_Report.pdf
+      |   |   +--- Color_Report.pdf
+      |   |   +--- Pattern_Report.pdf
+      |   |   +--- Settings_Receipt.pdf
+      |   +--- Images/
+      |   |   +--- heatmap.png
+      |   |   +--- spectral.png
+      |   |   +--- ...
+      |   +--- Data.json
+      +--- AI_SmartMatch/
+      |   +--- ...
+      +--- BESTCH/
+          +--- ...
 """
 
 import os
@@ -37,7 +37,7 @@ from datetime import datetime
 from io import BytesIO
 
 
-# â”€â”€ Alignment technique definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# -- Alignment technique definitions ------------------------------------------
 TECHNIQUES = [
     {'mode': 'direct',         'folder': 'Direct_Pixel',  'label': 'Direct Pixel'},
     {'mode': 'ai_smart_match', 'folder': 'AI_SmartMatch', 'label': 'AI SmartMatch'},
@@ -45,10 +45,10 @@ TECHNIQUES = [
 ]
 
 
-# â”€â”€ Public entry point â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# -- Public entry point --------------------------------------------------------
 def run_thesis_tests(flask_port, current_settings, current_region_data, ref_file_info, sample_file_info):
     """
-    Execute thesis tests: 3 alignment techniques Ã— full analysis pipeline.
+    Execute thesis tests: 3 alignment techniques x full analysis pipeline.
 
     Returns dict with success status, folder path, and per-technique summary.
     """
@@ -64,7 +64,6 @@ def run_thesis_tests(flask_port, current_settings, current_region_data, ref_file
         thesis_dir      = os.path.join(project_dir, 'thesis')
         os.makedirs(thesis_dir, exist_ok=True)
 
-        # â”€â”€ Resolve image paths â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         ref_path, sample_path, ref_name, sample_name, img_source = \
             _resolve_images(ref_file_info, sample_file_info, readytotest_dir)
 
@@ -79,7 +78,7 @@ def run_thesis_tests(flask_port, current_settings, current_region_data, ref_file
         tech_results = []
 
         for i, tech in enumerate(TECHNIQUES):
-            print(f'[ThesisTest] â”€â”€ Technique {i+1}/3: {tech["label"]} â”€â”€')
+            print(f'[ThesisTest] -- Technique {i+1}/3: {tech["label"]} --')
             r = _run_technique(
                 tech, base_url, run_dir,
                 current_settings, current_region_data,
@@ -87,7 +86,6 @@ def run_thesis_tests(flask_port, current_settings, current_region_data, ref_file
             )
             tech_results.append(r)
 
-        # â”€â”€ Master index â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         successful   = sum(1 for r in tech_results if r.get('success'))
         total_pdfs   = sum(r.get('pdfs_saved',   0) for r in tech_results)
         total_images = sum(r.get('images_saved', 0) for r in tech_results)
@@ -124,7 +122,7 @@ def run_thesis_tests(flask_port, current_settings, current_region_data, ref_file
         return {'success': False, 'error': str(e)}
 
 
-# â”€â”€ Image path resolver â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 def _resolve_images(ref_file_info, sample_file_info, readytotest_dir):
     """Return (ref_path, sample_path, ref_name, sample_name, source_label)."""
     if (ref_file_info and sample_file_info
@@ -152,7 +150,7 @@ def _resolve_images(ref_file_info, sample_file_info, readytotest_dir):
     return ref, sam, '1.png', '2.png', 'Ready-to-Test Pair 1'
 
 
-# â”€â”€ Per-technique runner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 def _run_technique(tech, base_url, run_dir, settings, region_data,
                    ref_path, sample_path, ref_name, sample_name):
     """Run one analysis technique and save all outputs.  Always returns a dict."""
@@ -168,7 +166,6 @@ def _run_technique(tech, base_url, run_dir, settings, region_data,
 
     t_start = time.time()
 
-    # â”€â”€ 1. Call /api/analyze â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     test_settings = dict(settings)
     test_settings['alignment_mode'] = mode
 
@@ -194,14 +191,14 @@ def _run_technique(tech, base_url, run_dir, settings, region_data,
         return {
             'technique': folder, 'mode': mode, 'label': label,
             'success': False,
-            'error': 'No session_id in response â€” update app.py to include it (already fixed in this build)',
+            'error': 'No session_id in analysis response',
         }
 
     duration = time.time() - t_start
     print(f'  [OK] Analysis done in {duration:.1f}s  |  decision={result.get("decision")}  |  '
           f'color={result.get("color_score",0):.1f}  pattern={result.get("pattern_score",0):.1f}')
 
-    # â”€â”€ 2. Download PDFs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # 2. Download PDFs
     pdf_map = [
         ('Full_Report.pdf',      result.get('pdf_url',           f'/api/download_report/merged/{session_id}')),
         ('Color_Report.pdf',     result.get('color_report_url',  f'/api/download_report/color/{session_id}')),
@@ -216,11 +213,10 @@ def _run_technique(tech, base_url, run_dir, settings, region_data,
             with open(out, 'wb') as f:
                 f.write(data)
             pdfs_saved.append(pdf_name)
-            print(f'  [PDF] {pdf_name}  ({len(data)//1024} KB)')
         except Exception as e:
             print(f'  [WARN] PDF failed ({pdf_name}): {e}')
 
-    # â”€â”€ 3. Download visualization images â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # 3. Download visualization images
     # The response already contains the correct URLs in result['images']
     images_saved = []
     viz = result.get('images') or {}
@@ -231,11 +227,10 @@ def _run_technique(tech, base_url, run_dir, settings, region_data,
             with open(out, 'wb') as f:
                 f.write(data)
             images_saved.append(f'{key}.png')
-            print(f'  [IMG] {key}.png  ({len(data)//1024} KB)')
         except Exception as e:
             print(f'  [WARN] Image failed ({key}): {e}')
 
-    # â”€â”€ 4. Save structured Data.json â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # 4. Save structured Data.json
     data_json = _build_data_json(
         result, mode, label, duration,
         ref_name, sample_name, pdfs_saved, images_saved,
@@ -244,8 +239,6 @@ def _run_technique(tech, base_url, run_dir, settings, region_data,
     json_path = os.path.join(tech_dir, 'Data.json')
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(data_json, f, indent=2, ensure_ascii=False)
-    print(f'  [JSON] Data.json saved')
-
     print(f'  [{label}] {len(pdfs_saved)} PDFs  |  {len(images_saved)} images')
 
     return {
@@ -264,7 +257,7 @@ def _run_technique(tech, base_url, run_dir, settings, region_data,
     }
 
 
-# â”€â”€ HTTP helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# HTTP helpers
 def _call_analyze(base_url, ref_path, sample_path, ref_name, sample_name,
                   settings, region_data):
     """POST multipart/form-data to /api/analyze and return parsed JSON dict."""
@@ -313,7 +306,7 @@ def _fetch(url, timeout=60):
         return resp.read()
 
 
-# â”€â”€ Comprehensive JSON builder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Comprehensive JSON builder
 def _build_data_json(result, mode, label, duration, ref_name, sample_name,
                      pdfs_saved, images_saved, settings=None, region_data=None):
     """Package the full /api/analyze response into a structured thesis data file.
@@ -322,16 +315,12 @@ def _build_data_json(result, mode, label, duration, ref_name, sample_name,
     omitted (the actual files are already saved to disk).  The raw_api_fields
     section acts as a catch-all so that no data is ever silently dropped.
     """
-    # ── URL-type fields that are transient and should NOT be persisted ─────────
     _url_fields = {
         'pdf_url', 'receipt_url', 'color_report_url', 'pattern_report_url',
         'images',    # image URLs — the actual PNG files are saved in Images/
     }
 
-    # ── Build the structured document ─────────────────────────────────────────
     doc = {
-
-        # ── 1. Run metadata ───────────────────────────────────────────────────
         'metadata': {
             'alignment_mode'   : mode,
             'alignment_label'  : label,
@@ -356,7 +345,6 @@ def _build_data_json(result, mode, label, duration, ref_name, sample_name,
             },
         },
 
-        # ── 2. Overall scores & decisions ─────────────────────────────────────
         'scores': {
             'color_score'            : result.get('color_score',            0),
             'pattern_score'          : result.get('pattern_score',          0),
@@ -370,29 +358,17 @@ def _build_data_json(result, mode, label, duration, ref_name, sample_name,
             'pattern_method_label'   : result.get('pattern_method_label',   ''),
         },
 
-        # ── 3. Color analysis ─────────────────────────────────────────────────
-        #  color_regions  = per-sampling-point table
-        #                   each entry: {id, pos[x,y], de76, de94, de00,
-        #                               status, ref_lab[L,a,b], sam_lab[L,a,b],
-        #                               ref_rgb[R,G,B], sam_rgb[R,G,B]}
-        #  de_statistics   = summary stats for de76/de94/de00 (mean/std/min/max)
-        #  illuminant_data = per-illuminant CSI & ΔE00 table
-        #  color_averages  = mean LAB and RGB across all sampling points
         'color_analysis': {
-            'mean_de00'      : result.get('mean_de00',       0),
-            'csi_value'      : result.get('csi_value',       0),
-            'de_statistics'  : result.get('de_statistics',   {}),
-            'color_regions'  : result.get('color_regions',   []),
-            'color_averages' : result.get('color_averages',  {}),
-            'illuminant_data': result.get('illuminant_data', []),
+            'mean_de00'        : result.get('mean_de00',             0),
+            'csi_value'        : result.get('csi_value',             0),
+            'de_statistics'    : result.get('de_statistics',         {}),
+            'color_regions'    : result.get('color_regions',         []),
+            'color_averages'   : result.get('color_averages',        {}),
+            'illuminant_data'  : result.get('illuminant_data',       []),
+            'sampling_radius'  : result.get('color_sampling_radius', 0),
+            'sampling_points'  : result.get('color_sampling_points', []),
         },
 
-        # ── 4. Pattern analysis ───────────────────────────────────────────────
-        #  individual_scores = {"Structural SSIM": x,
-        #                       "Gradient Similarity": x,
-        #                       "Phase Correlation": x,
-        #                       "Structural Match": x, ...}
-        #  structural_meta   = {similarity_score, verdict, change_percentage}
         'pattern_analysis': {
             'composite_score'   : result.get('pattern_composite',    0),
             'final_status'      : result.get('pattern_final_status', ''),
@@ -400,13 +376,15 @@ def _build_data_json(result, mode, label, duration, ref_name, sample_name,
             'structural_meta'   : result.get('structural_meta',      {}),
         },
 
-        # ── 5. Alignment ──────────────────────────────────────────────────────
+        'fourier_analysis': result.get('fourier_data', {}),
+
+        'glcm_analysis': result.get('glcm_data', {}),
+
         'alignment': {
             'mode'   : result.get('alignment_mode', mode),
             'metrics': result.get('alignment_metrics', {}),
         },
 
-        # ── 6. Recommendations & conclusions ─────────────────────────────────
         'recommendations': {
             'color_findings'            : result.get('color_findings',            []),
             'color_conclusion'          : result.get('color_conclusion_text',     ''),
@@ -416,15 +394,10 @@ def _build_data_json(result, mode, label, duration, ref_name, sample_name,
             'pattern_conclusion_status' : result.get('pattern_conclusion_status', ''),
         },
 
-        # ── 7. Exact settings used for this run ───────────────────────────────
-        #  Critical for thesis reproducibility
         'settings_used': settings if settings is not None else {},
 
-        # ── 8. Region / crop definition used ─────────────────────────────────
         'region_data': region_data if region_data is not None else {},
 
-        # ── 9. Catch-all: every API field not already covered above ───────────
-        #  Ensures no data is silently dropped if the API adds new fields
         'raw_api_fields': {
             k: v for k, v in result.items()
             if k not in _url_fields
@@ -438,6 +411,8 @@ def _build_data_json(result, mode, label, duration, ref_name, sample_name,
                 'de_statistics', 'color_regions', 'color_averages', 'illuminant_data',
                 'pattern_composite', 'pattern_final_status', 'pattern_scores', 'structural_meta',
                 'alignment_mode', 'alignment_metrics',
+                'fourier_data', 'glcm_data',
+                'color_sampling_radius', 'color_sampling_points',
                 'color_findings', 'color_conclusion_text', 'color_conclusion_status',
                 'pattern_findings', 'pattern_conclusion_text', 'pattern_conclusion_status',
                 'report_id', 'report_date', 'report_time', 'operator',
@@ -448,6 +423,3 @@ def _build_data_json(result, mode, label, duration, ref_name, sample_name,
     }
     return doc
 
-
-if __name__ == '__main__':
-    print('Thesis test automation module loaded successfully.')
