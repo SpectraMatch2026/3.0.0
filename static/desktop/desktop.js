@@ -2570,7 +2570,39 @@ function openAlignmentStudio(){
     var refFile=State.refFile||null;
     var sampleFile=State.sampleFile||null;
     var regionData=buildRegionData();
-    AlignmentStudio.open({refSrc:refSrc,sampleSrc:sampleSrc,refFile:refFile,sampleFile:sampleFile,regionData:regionData,isDesktop:true});
+    AlignmentStudio.open({
+        refSrc:refSrc,sampleSrc:sampleSrc,
+        refFile:refFile,sampleFile:sampleFile,
+        regionData:regionData,isDesktop:true,
+        onApply:function(applyData){
+            var techId=applyData.techId;
+            var previews=applyData.previews;
+            if(!previews||techId==='direct')return;
+
+            var alignedSrc=previews.aligned?'data:image/png;base64,'+previews.aligned:null;
+            var newRefSrc=previews.ref_cropped
+                ?'data:image/png;base64,'+previews.ref_cropped
+                :(previews.ref_source?'data:image/png;base64,'+previews.ref_source:null);
+
+            function _applyPreview(which,src,stateKey,wKey,hKey){
+                if(!src)return;
+                var img=new Image();
+                img.onload=function(){
+                    var w=img.naturalWidth,h=img.naturalHeight;
+                    State[stateKey]=src;
+                    State[wKey]=w;State[hKey]=h;
+                    var fname=which==='ref'
+                        ?(State.refFile?State.refFile.name:'reference.png')
+                        :(State.sampleFile?State.sampleFile.name:'aligned_sample.png');
+                    showPreview(which,src,w,h,fname);
+                    updateSliderMax();
+                };
+                img.src=src;
+            }
+            _applyPreview('ref',newRefSrc,'refDataUrl','refW','refH');
+            _applyPreview('sample',alignedSrc,'sampleDataUrl','sampleW','sampleH');
+        }
+    });
 }
 
 /* ═══ Calibration ═══ */

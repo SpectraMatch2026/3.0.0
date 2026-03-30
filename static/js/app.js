@@ -3174,6 +3174,33 @@ function openAlignmentStudio() {
         sampleFile: sampleFile,
         regionData: regionData,
         isDesktop: false,
+        onApply: function (applyData) {
+            var techId = applyData.techId;
+            var previews = applyData.previews;
+            if (!previews || techId === 'direct') return;
+
+            var alignedSrc = previews.aligned
+                ? 'data:image/png;base64,' + previews.aligned : null;
+            var newRefSrc = previews.ref_cropped
+                ? 'data:image/png;base64,' + previews.ref_cropped
+                : (previews.ref_source
+                    ? 'data:image/png;base64,' + previews.ref_source : null);
+
+            var refImgEl = document.getElementById('refPreview') ||
+                           document.getElementById('ref_image_preview');
+            var samImgEl = document.getElementById('testPreview') ||
+                           document.getElementById('samplePreview') ||
+                           document.getElementById('sample_image_preview');
+
+            if (refImgEl && newRefSrc) {
+                refImgEl.src = newRefSrc;
+                refImgEl.style.display = '';
+            }
+            if (samImgEl && alignedSrc) {
+                samImgEl.src = alignedSrc;
+                samImgEl.style.display = '';
+            }
+        },
     });
 }
 

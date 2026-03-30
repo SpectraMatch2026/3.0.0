@@ -26,6 +26,7 @@ var AlignmentStudio = (function () {
         calibrationResults: {},
         calibrationReportUrl: null,
         calibrationReportFilename: null,
+        onApply: null,
     };
 
     var TECHNIQUES = [
@@ -256,6 +257,7 @@ var AlignmentStudio = (function () {
         state.sampleFile = options.sampleFile || null;
         state.regionData = options.regionData || null;
         state.isDesktop = options.isDesktop || false;
+        state.onApply = (typeof options.onApply === 'function') ? options.onApply : null;
         state.testedTechniques = {};
         state.currentPreviews = null;
         state.currentMetrics = null;
@@ -426,6 +428,20 @@ var AlignmentStudio = (function () {
         if (state.activeTechnique && state.activeTechnique !== state.savedTechnique) {
             _saveTechnique(state.activeTechnique);
         }
+
+        // Fire onApply callback with the aligned image previews so the
+        // main workspace can update its displayed images.
+        if (typeof state.onApply === 'function') {
+            var techId = state.savedTechnique || state.activeTechnique;
+            var cached = state.testedTechniques[techId] || null;
+            state.onApply({
+                techId: techId,
+                previews: cached ? cached.previews : null,
+                metrics:  cached ? cached.metrics  : null,
+                regionData: state.regionData,
+            });
+        }
+
         var btn = document.getElementById('asConfirmBtn');
         btn.classList.add('confirmed');
         btn.innerHTML = ICONS.check + '<span>' + t('align.confirmed', 'Saved!') + '</span>';
