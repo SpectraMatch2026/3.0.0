@@ -8,7 +8,7 @@ To keep the WSGI import fast, we *lazy-import* heavy dependencies inside the
 request handler(s).
 """
 
-from flask import Flask, render_template, request, send_file, jsonify
+from flask import Flask, render_template, request, send_file, jsonify, redirect, abort
 import os
 import time
 import threading
@@ -185,6 +185,33 @@ def download_desktop_installer():
         'https://github.com/SpectraMatch2026/3.0.0/raw/main/static/downloads/SpectraMatch_Setup_3.0.0.exe'
     )
     return redirect(release_url)
+
+
+@app.route("/datasheets")
+def datasheets_redirect():
+    return redirect("/datasheets/", code=301)
+
+
+@app.route("/datasheets/")
+def datasheets_page():
+    return render_template("datasheets.html")
+
+
+@app.route("/datasheetEN.pdf")
+def datasheet_en_root():
+    path = os.path.join(app.static_folder, "DataSheets", "Datasheet_EN.pdf")
+    if not os.path.isfile(path):
+        abort(404)
+    return send_file(path, mimetype="application/pdf")
+
+
+@app.route("/datasheetTR.pdf")
+def datasheet_tr_root():
+    path = os.path.join(app.static_folder, "DataSheets", "Datasheet_TR.pdf")
+    if not os.path.isfile(path):
+        abort(404)
+    return send_file(path, mimetype="application/pdf")
+
 
 @app.route('/api/alignment/modes', methods=['GET'])
 def alignment_modes():

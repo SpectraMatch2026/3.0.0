@@ -3034,8 +3034,8 @@ function downloadSettings() {
 
 // Datasheet Functions
 function downloadDatasheet(type) {
-    var filename = type === 'en' ? 'Datasheet_EN.pdf' : 'Datasheet_TR.pdf';
-    var url = '/static/DataSheets/' + filename;
+    var url = type === 'en' ? '/datasheetEN.pdf' : '/datasheetTR.pdf';
+    var filename = type === 'en' ? 'SpectraMatch_Datasheet_EN_3.0.0.pdf' : 'SpectraMatch_Datasheet_TR_3.0.0.pdf';
     
     var a = document.createElement('a');
     a.href = url;

@@ -8,6 +8,13 @@
 [build.environment]
   PYTHON_VERSION = "3.12"
 
+# Pretty URL for the datasheets page
+[[redirects]]
+  from = "/datasheets"
+  to = "/datasheets/"
+  status = 301
+  force = true
+
 [[headers]]
   for = "/static/*"
   [headers.values]

@@ -17,7 +17,23 @@ def main() -> None:
         os.path.join(ROOT, "templates", "index.html"),
         os.path.join(OUT, "index.html"),
     )
+    # Product datasheets landing: /datasheets/ (served as index in folder)
+    datasheets_dir = os.path.join(OUT, "datasheets")
+    os.makedirs(datasheets_dir, exist_ok=True)
+    shutil.copy2(
+        os.path.join(ROOT, "templates", "datasheets.html"),
+        os.path.join(datasheets_dir, "index.html"),
+    )
     shutil.copytree(os.path.join(ROOT, "static"), os.path.join(OUT, "static"))
+    # Short URLs: /datasheetEN.pdf and /datasheetTR.pdf
+    en_pdf = os.path.join(ROOT, "static", "DataSheets", "Datasheet_EN.pdf")
+    tr_pdf = os.path.join(ROOT, "static", "DataSheets", "Datasheet_TR.pdf")
+    for src, name in ((en_pdf, "datasheetEN.pdf"), (tr_pdf, "datasheetTR.pdf")):
+        if not os.path.isfile(src):
+            raise FileNotFoundError(
+                f"Build requires datasheet PDF: missing {os.path.relpath(src, ROOT)}"
+            )
+        shutil.copy2(src, os.path.join(OUT, name))
     print("Netlify publish directory ready.")
 
 
