@@ -25,6 +25,15 @@ var AppState = {
 var IlluminantTabOriginalParent = null;
 var IlluminantTabOriginalNextSibling = null;
 
+/**
+ * When true, Start Processing shows the branded maintenance modal instead of calling the analysis API.
+ * Set to false when hosting with a full Python backend.
+ */
+var WEB_ANALYSIS_DISABLED = true;
+
+/** Windows installer URL (GitHub Release); used by the maintenance modal on static hosting. */
+var DESKTOP_INSTALLER_DIRECT_URL = 'https://github.com/SpectraMatch2026/3.0.0/releases/download/v3.0.0/SpectraMatch_Setup_3.0.0.exe';
+
 // Point Selector State
 var PointSelectorState = {
     isOpen: false,
@@ -51,6 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     initSingleImageReportSections();
     initButtons();
+    initWebMaintenanceModal();
+    syncDesktopDownloadUrls();
     initModal();
     initOverlayTracking();
     loadDefaultSettings();
@@ -1393,6 +1404,66 @@ function updateOverlaySize() {
     });
 }
 
+function showWebMaintenanceModal() {
+    var overlay = document.getElementById('webMaintenanceOverlay');
+    var link = document.getElementById('webMaintenanceDownload');
+    if (link) {
+        link.href = DESKTOP_INSTALLER_DIRECT_URL;
+    }
+    if (typeof I18n !== 'undefined' && I18n.translatePage) {
+        I18n.translatePage();
+    }
+    if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.setAttribute('aria-hidden', 'false');
+    }
+    document.body.style.overflow = 'hidden';
+}
+
+function hideWebMaintenanceModal() {
+    var overlay = document.getElementById('webMaintenanceOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+        overlay.setAttribute('aria-hidden', 'true');
+    }
+    document.body.style.overflow = '';
+}
+
+function syncDesktopDownloadUrls() {
+    var url = typeof DESKTOP_INSTALLER_DIRECT_URL !== 'undefined' ? DESKTOP_INSTALLER_DIRECT_URL : '';
+    if (!url) return;
+    var headerA = document.getElementById('btnDesktopDownload');
+    var fallbackA = document.getElementById('dlFallbackBtn');
+    if (headerA) headerA.setAttribute('href', url);
+    if (fallbackA) fallbackA.setAttribute('href', url);
+}
+
+function initWebMaintenanceModal() {
+    var overlay = document.getElementById('webMaintenanceOverlay');
+    var closeBtn = document.getElementById('webMaintenanceClose');
+    var card = overlay ? overlay.querySelector('.web-maintenance-card') : null;
+    if (card) {
+        card.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    }
+    if (overlay) {
+        overlay.addEventListener('click', function () {
+            hideWebMaintenanceModal();
+        });
+    }
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function () {
+            hideWebMaintenanceModal();
+        });
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        if (!overlay || overlay.style.display !== 'flex') return;
+        hideWebMaintenanceModal();
+    });
+}
+
 // Button Handlers
 function initButtons() {
     var btnSettings = document.getElementById('btnAdvancedSettings');
@@ -1724,6 +1795,11 @@ function startProcessing() {
             showCustomAlert(I18n.t('error') || 'Error', I18n.t('please.upload.both') || 'Please upload both reference and sample images.', 'error');
             return;
         }
+    }
+
+    if (typeof WEB_ANALYSIS_DISABLED !== 'undefined' && WEB_ANALYSIS_DISABLED) {
+        showWebMaintenanceModal();
+        return;
     }
 
     if (AppState.isProcessing) return;
@@ -3102,6 +3178,111 @@ function resetSettings() {
 
 // SPACTRA Studio (v3.0.0)
 
+// ─────────────────────────────────────────────────────────────────────
+// Auto-apply alignment to workspace when the technique dropdown changes.
+// Calls /api/alignment/preview with the current images + region, then
+// swaps the displayed ref/sample previews so points can be placed on
+// the aligned result. Switching back to "direct" restores originals.
+// ─────────────────────────────────────────────────────────────────────
+var _alignmentAutoApply = {
+    inFlight: null,
+    lastMode: null,
+};
+
+function _getWorkspaceImageEls() {
+    return {
+        ref: document.getElementById('refPreview') || document.getElementById('ref_image_preview'),
+        sample: document.getElementById('testPreview')
+                || document.getElementById('samplePreview')
+                || document.getElementById('sample_image_preview'),
+    };
+}
+
+function _restoreOriginalPreviews() {
+    var els = _getWorkspaceImageEls();
+    function _setFromFile(el, file) {
+        if (!el || !file) return;
+        var r = new FileReader();
+        r.onload = function (e) { el.src = e.target.result; el.style.display = ''; };
+        r.readAsDataURL(file);
+    }
+    _setFromFile(els.ref, AppState.refFile);
+    _setFromFile(els.sample, AppState.testFile || AppState.sampleFile);
+}
+
+function applyAlignmentToWorkspace(mode) {
+    mode = mode || 'direct';
+    if (_alignmentAutoApply.lastMode === mode && mode === 'direct') return;
+    _alignmentAutoApply.lastMode = mode;
+
+    if (mode === 'direct') {
+        _restoreOriginalPreviews();
+        return;
+    }
+
+    var refFile = AppState.refFile;
+    var sampleFile = AppState.testFile || AppState.sampleFile;
+    if (!refFile || !sampleFile) return; // need both
+
+    // Build region data — same logic as openAlignmentStudio
+    var regionData = null;
+    if (typeof RegionSelector !== 'undefined' &&
+        typeof RegionSelector.isPlaced === 'function' && RegionSelector.isPlaced() &&
+        !AppState.processFullImage) {
+        var cs = RegionSelector.getCropSettings();
+        if (cs && cs.use_crop) {
+            regionData = {
+                type: cs.crop_shape === 'circle' ? 'circle' : 'rect',
+                x: cs.crop_x, y: cs.crop_y,
+                width: cs.crop_width, height: cs.crop_height,
+                use_crop: true
+            };
+        }
+    }
+
+    var fd = new FormData();
+    fd.append('mode', mode);
+    fd.append('ref_image', refFile, refFile.name || 'ref.png');
+    fd.append('sample_image', sampleFile, sampleFile.name || 'sample.png');
+    fd.append('region_data', JSON.stringify(regionData || {}));
+
+    if (_alignmentAutoApply.inFlight) {
+        try { _alignmentAutoApply.inFlight.abort(); } catch (e) {}
+    }
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    _alignmentAutoApply.inFlight = ctrl;
+
+    fetch('/api/alignment/preview', {
+        method: 'POST',
+        body: fd,
+        signal: ctrl ? ctrl.signal : undefined,
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        _alignmentAutoApply.inFlight = null;
+        if (!data || !data.success || !data.previews) return;
+        var els = _getWorkspaceImageEls();
+        var p = data.previews;
+        var newRefSrc = p.ref_cropped
+            ? 'data:image/png;base64,' + p.ref_cropped
+            : (p.ref_source ? 'data:image/png;base64,' + p.ref_source : null);
+        var alignedSrc = p.aligned ? 'data:image/png;base64,' + p.aligned : null;
+        if (els.ref && newRefSrc) { els.ref.src = newRefSrc; els.ref.style.display = ''; }
+        if (els.sample && alignedSrc) { els.sample.src = alignedSrc; els.sample.style.display = ''; }
+    })
+    .catch(function () { _alignmentAutoApply.inFlight = null; });
+}
+
+function initAlignmentAutoApply() {
+    var sel = document.getElementById('alignment_mode');
+    if (!sel || sel.dataset.autoApplyBound === '1') return;
+    sel.dataset.autoApplyBound = '1';
+    sel.addEventListener('change', function () {
+        applyAlignmentToWorkspace(this.value);
+    });
+}
+document.addEventListener('DOMContentLoaded', initAlignmentAutoApply);
+
 function openAlignmentStudio() {
     if (typeof AlignmentStudio === 'undefined') {
         console.error('AlignmentStudio module not loaded');
@@ -3275,6 +3456,10 @@ function collectSettings() {
         structural_pass: getNum('structural_pass', 85.0),
         structural_cond: getNum('structural_cond', 70.0),
         global_pattern_threshold: getNum('pattern_global_thresh', 75.0),
+
+        // Boundary detection sensitivity (1..10) for Gradient & Phase methods
+        gradient_boundary_sensitivity: getNum('grad_bound_sens', 8),
+        phase_boundary_sensitivity:    getNum('phase_bound_sens', 8),
 
         // Sections - Color
         section_color_spaces: getCheck('sec_color_spaces', true),
@@ -4266,6 +4451,10 @@ function proceedResetSettings() {
     var stp = document.getElementById('structural_pass'); if (stp) stp.value = "85.0";
     var stc = document.getElementById('structural_cond'); if (stc) stc.value = "70.0";
     var pt = document.getElementById('pattern_global_thresh'); if (pt) pt.value = "75.0";
+
+    // Boundary detection sensitivity sliders
+    var gbs = document.getElementById('grad_bound_sens'); if (gbs) { gbs.value = '8'; var gbsv = document.getElementById('grad_bound_sens_val'); if (gbsv) gbsv.textContent = '8'; }
+    var pbs = document.getElementById('phase_bound_sens'); if (pbs) { pbs.value = '8'; var pbsv = document.getElementById('phase_bound_sens_val'); if (pbsv) pbsv.textContent = '8'; }
 
     var patternChecks = ['enable_ssim', 'enable_gradient', 'enable_phase', 'enable_grad_bound', 'enable_phase_bound', 'enable_summary', 'enable_concl', 'enable_rec', 'enable_structural', 'enable_fourier', 'enable_glcm'];
     patternChecks.forEach(function (id) {

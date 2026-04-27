@@ -182,7 +182,7 @@ def download_desktop_installer():
     # 2. Redirect to env-var URL or default GitHub Release
     release_url = os.environ.get(
         'DESKTOP_INSTALLER_URL',
-        'https://github.com/algamel98/SPECTRAMATCHPAU/releases/download/v3.0.0/SpectraMatch_Setup_3.0.0.exe'
+        'https://github.com/SpectraMatch2026/3.0.0/releases/download/v3.0.0/SpectraMatch_Setup_3.0.0.exe'
     )
     return redirect(release_url)
 

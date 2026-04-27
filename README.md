@@ -133,8 +133,8 @@ Performs color distribution analysis, texture uniformity assessment, and defect 
 
 ```bash
 # Clone the repository
-git clone https://github.com/algamel98/SPECTRAMATCHPAU.git
-cd SPECTRAMATCHPAU
+git clone https://github.com/SpectraMatch2026/3.0.0.git
+cd 3.0.0
 
 # Install dependencies
 pip install -r requirements.txt
@@ -169,6 +169,10 @@ gunicorn wsgi:application --bind 0.0.0.0:5000
 ```
 
 Heavy dependencies (OpenCV, NumPy, ReportLab) are lazy-imported to keep WSGI startup fast and avoid timeout issues behind reverse proxies.
+
+### Static site (Netlify)
+
+The repo includes `netlify.toml`. Connect [SpectraMatch2026/3.0.0](https://github.com/SpectraMatch2026/3.0.0) to Netlify with the default build settings: the build copies `templates/index.html` and `static/` into `netlify_publish/`. The public site is a browsable UI shell; full analysis runs in the **Windows desktop** build. Desktop downloads use the GitHub Release asset URL configured in the templates and `static/js/app.js`.
 
 ---
 

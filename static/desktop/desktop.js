@@ -58,6 +58,7 @@ var T={en:{
 'rpt.phase':'Phase Correlation','rpt.structural':'Structural Difference','rpt.fourier':'Fourier Domain Analysis',
 'rpt.glcm':'GLCM Texture Analysis',
 'rpt.grad.bound':'Gradient Boundary','rpt.phase.bound':'Phase Boundary',
+'prop.boundary.sensitivity':'Boundary Detection Sensitivity','prop.gradient.sens':'Gradient Sensitivity','prop.phase.sens':'Phase Sensitivity',
 'rpt.summary':'Summary','rpt.conclusion':'Conclusion','rpt.pattern.rec':'Recommendations',
 'btab.console':'Console','btab.results':'Results','btab.clear':'Clear',
 'results.empty':'Run an analysis to see results here.','sb.ready':'Ready',
@@ -202,6 +203,7 @@ var T={en:{
 'rpt.phase':'Faz Korelasyonu','rpt.structural':'Yapısal Fark','rpt.fourier':'Fourier Alan Analizi',
 'rpt.glcm':'GLCM Doku Analizi',
 'rpt.grad.bound':'Gradyan Sınırı','rpt.phase.bound':'Faz Sınırı',
+'prop.boundary.sensitivity':'Sınır Tespit Hassasiyeti','prop.gradient.sens':'Gradyan Hassasiyeti','prop.phase.sens':'Faz Hassasiyeti',
 'rpt.summary':'Özet','rpt.conclusion':'Sonuç','rpt.pattern.rec':'Öneriler',
 'btab.console':'Konsol','btab.results':'Sonuçlar','btab.clear':'Temizle',
 'results.empty':'Sonuçları görmek için bir analiz çalıştırın.','sb.ready':'Hazır',
@@ -524,6 +526,7 @@ function initToolbar(){
     $('tbFullImage').addEventListener('change',function(){
         State.fullImage=this.checked;
         $('tbRegionControls').classList.toggle('hidden',State.fullImage);
+        updateRightToolsCollapsed();
         log(t('log.region')+': '+(State.fullImage?t('tb.full.image'):t('sb.custom')),'info');
         updateRegionOverlays();updateUI();scheduleSave();
     });
@@ -555,13 +558,35 @@ function initToolbar(){
     sync('tbHeightSlider','tbHeightValue');
     $('tbRegionControls').classList.toggle('hidden',State.fullImage);
 
+    /* ── Right toolbar collapse: when Full Image is OFF, group right-side
+         tools (Ready-to-Test, Datasheet, Feedback, Thesis Test, Reset) into
+         a clean dropdown anchored on a "more" button to keep the toolbar
+         tidy. When Full Image is ON, restore the inline layout. ── */
+    var moreBtn=$('tbMoreBtn');
+    var rightTools=$('tbRightTools');
+    if(moreBtn&&rightTools){
+        moreBtn.addEventListener('click',function(e){
+            e.stopPropagation();
+            rightTools.classList.toggle('show');
+        });
+        document.addEventListener('click',function(e){
+            if(!rightTools.contains(e.target))rightTools.classList.remove('show');
+        });
+        document.addEventListener('keydown',function(e){
+            if(e.key==='Escape')rightTools.classList.remove('show');
+        });
+    }
+    updateRightToolsCollapsed();
+
     /* ── Toolbar ⇔ Properties bidirectional sync: Alignment Mode ── */
     $('tbAlignmentMode').addEventListener('change',function(){
         if($('propAlignmentMode'))$('propAlignmentMode').value=this.value;
+        applyAlignmentToWorkspace(this.value);
         scheduleSave();
     });
     if($('propAlignmentMode'))$('propAlignmentMode').addEventListener('change',function(){
         $('tbAlignmentMode').value=this.value;
+        applyAlignmentToWorkspace(this.value);
     });
 
     /* ── Toolbar ⇔ Properties bidirectional sync: Sampling Count ── */
@@ -629,8 +654,16 @@ function loadImage(which,file){
         var img=new Image();
         img.onload=function(){
             var w=img.naturalWidth,h=img.naturalHeight;
-            if(which==='ref'){State.refFile=file;State.refDataUrl=e.target.result;State.refW=w;State.refH=h;}
-            else{State.sampleFile=file;State.sampleDataUrl=e.target.result;State.sampleW=w;State.sampleH=h;}
+            if(which==='ref'){
+                State.refFile=file;State.refDataUrl=e.target.result;State.refW=w;State.refH=h;
+                /* Track the original — used to restore when alignment mode is reset to Direct */
+                State.refDataUrlOriginal=e.target.result;State.refWOriginal=w;State.refHOriginal=h;
+            } else {
+                State.sampleFile=file;State.sampleDataUrl=e.target.result;State.sampleW=w;State.sampleH=h;
+                State.sampleDataUrlOriginal=e.target.result;State.sampleWOriginal=w;State.sampleHOriginal=h;
+            }
+            /* Reset cached alignment so next mode change re-applies on fresh image */
+            _alignAutoApply.lastMode=null;
             showPreview(which,e.target.result,w,h,file.name);
             updateSliderMax();
             resetRegionCenter();
@@ -1347,6 +1380,18 @@ function updatePSUI(){
     updateSamplingUI();
 }
 
+/* ═══ Right Toolbar Collapse Helper ═══
+   Toggles the .collapsed class on #tbRightTools so the right-side icons
+   (Ready-to-Test → Reset) become a single "more" dropdown when Full Image
+   mode is OFF (which expands the region controls and crowds the toolbar). */
+function updateRightToolsCollapsed(){
+    var rt=$('tbRightTools');if(!rt)return;
+    /* Collapse only when Full Image is OFF */
+    rt.classList.toggle('collapsed',!State.fullImage);
+    /* Always close the popover when the layout flips */
+    rt.classList.remove('show');
+}
+
 /* ═══ UI State ═══ */
 function updateUI(){
     var hasRef=!!State.refFile,hasSample=!!State.sampleFile;
@@ -1447,6 +1492,8 @@ function collectSettings(){
         phase_pass:num('propPhasePass',85.0),phase_cond:num('propPhaseCond',70.0),
         structural_pass:num('propStructuralPass',85.0),structural_cond:num('propStructuralCond',70.0),
         global_pattern_threshold:num('propPatternGlobal',75.0),
+        gradient_boundary_sensitivity:num('propGradBoundSens',8),
+        phase_boundary_sensitivity:num('propPhaseBoundSens',8),
         section_color_spaces:chk('rptColorSpaces',true),section_rgb:chk('rptRgb',true),
         section_lab:chk('rptLab',true),section_xyz:chk('rptXyz',true),section_cmyk:chk('rptCmyk',true),
         section_diff_metrics:chk('rptDiffMetrics',true),section_stats:chk('rptStats',true),
@@ -1987,6 +2034,8 @@ function resetSettings(){
     $('propPointsCount').value='5';$('propSamplingMode').value='random';
     $('propSsimPass').value='85.0';$('propSsimCond').value='70.0';$('propGradPass').value='85.0';$('propGradCond').value='70.0';
     $('propPhasePass').value='85.0';$('propPhaseCond').value='70.0';$('propPatternGlobal').value='75.0';
+    if($('propGradBoundSens')){$('propGradBoundSens').value='8';if($('propGradBoundSensVal'))$('propGradBoundSensVal').textContent='8';}
+    if($('propPhaseBoundSens')){$('propPhaseBoundSens').value='8';if($('propPhaseBoundSensVal'))$('propPhaseBoundSensVal').textContent='8';}
     $('propLabDL').value='1.0';$('propLabDA').value='1.0';$('propLabDB').value='1.0';$('propLabMag').value='2.0';
     $('propIlluminant').value='D65';
     document.querySelectorAll('.prop-check-list input[type="checkbox"],.prop-check-grid input[type="checkbox"]').forEach(function(cb){
@@ -1996,6 +2045,7 @@ function resetSettings(){
     State.manualPoints=[];State.randomPoints=[];
     State.fullImage=true;$('tbFullImage').checked=true;
     $('tbRegionControls').classList.add('hidden');
+    updateRightToolsCollapsed();
     resetRegionCenter();updateRegionOverlays();updateSamplingUI();
     log(t('log.settings.reset'),'warn');
     scheduleSave();
@@ -2209,6 +2259,8 @@ function saveState(){
             propPhasePass:$('propPhasePass')?$('propPhasePass').value:'85.0',
             propPhaseCond:$('propPhaseCond')?$('propPhaseCond').value:'70.0',
             propPatternGlobal:$('propPatternGlobal')?$('propPatternGlobal').value:'75.0',
+            propGradBoundSens:$('propGradBoundSens')?$('propGradBoundSens').value:'5',
+            propPhaseBoundSens:$('propPhaseBoundSens')?$('propPhaseBoundSens').value:'5',
             propLabDL:$('propLabDL')?$('propLabDL').value:'1.0',
             propLabDA:$('propLabDA')?$('propLabDA').value:'1.0',
             propLabDB:$('propLabDB')?$('propLabDB').value:'1.0',
@@ -2249,6 +2301,7 @@ function restoreState(){
         if($('tbSingleMode'))$('tbSingleMode').checked=State.singleMode;
         if($('tbFullImage'))$('tbFullImage').checked=State.fullImage;
         if($('tbRegionControls'))$('tbRegionControls').classList.toggle('hidden',State.fullImage);
+        updateRightToolsCollapsed();
 
         /* Shape & Size */
         if(s.shape&&$('tbShape')){$('tbShape').value=s.shape;$('tbRectGroup').style.display=s.shape==='rectangle'?'':'none';}
@@ -2291,10 +2344,14 @@ function restoreState(){
             'propColorGlobal','propCsiGood','propCsiWarn','propRegionCount','propPointsCount',
             'propSamplingMode','propIlluminant','propSsimPass','propSsimCond','propGradPass',
             'propGradCond','propPhasePass','propPhaseCond','propPatternGlobal',
+            'propGradBoundSens','propPhaseBoundSens',
             'propLabDL','propLabDA','propLabDB','propLabMag',
             'propColorScoringMethod','propPatternScoringMethod',
             'propStructuralPass','propStructuralCond'];
         fields.forEach(function(f){if(s[f]!==undefined&&$(f))$(f).value=s[f];});
+        /* Sync slider value labels after restoring */
+        if($('propGradBoundSens')&&$('propGradBoundSensVal'))$('propGradBoundSensVal').textContent=$('propGradBoundSens').value;
+        if($('propPhaseBoundSens')&&$('propPhaseBoundSensVal'))$('propPhaseBoundSensVal').textContent=$('propPhaseBoundSens').value;
         /* Sync toolbar quick-access controls from restored property values */
         if($('tbAlignmentMode')&&$('propAlignmentMode'))$('tbAlignmentMode').value=$('propAlignmentMode').value;
         if($('tbSamplingCount')&&$('propRegionCount'))$('tbSamplingCount').value=$('propRegionCount').value;
@@ -2435,6 +2492,8 @@ function runThesisTest(){
     log('Collecting current desktop settings...','info');
 
     var currentSettings=collectSettings();
+    /* Thesis output language follows the Report Language setting in General Settings. */
+    log('Thesis report language: '+currentSettings.report_lang,'info');
     var currentRegionData=buildRegionData();
 
     var refFileInfo=null;
@@ -2555,6 +2614,157 @@ function _showImageRequiredDialog(title, msg){
     overlay.appendChild(dialog);
     document.body.appendChild(overlay);
     okBtn.focus();
+}
+
+/* ═══ Alignment Auto-Apply to Workspace (v3.0.0) ═══
+   When the user picks an alignment technique from the toolbar / properties
+   dropdown OR confirms one inside SPACTRA Studio, run it on the current
+   workspace images and swap the displayed previews so points can be placed
+   on the processed result. Switching back to "direct" restores originals. */
+var _alignAutoApply={inFlight:null,lastMode:null,loaderTimer:null};
+
+/* ─── Loader UI for the alignment auto-apply ────────────────────────────
+   Appears anchored to #panelViewer after a short delay so instant
+   operations (e.g. "direct" restore) never flash a loader. Theme-aware
+   via CSS vars; no percentage — only animated rings and a status line. */
+function _showAlignLoader(mode){
+    var host=document.getElementById('panelViewer');if(!host)return;
+    var ov=document.getElementById('alignLoaderOverlay');
+    if(!ov){
+        ov=document.createElement('div');
+        ov.id='alignLoaderOverlay';
+        ov.className='align-loader-overlay';
+        ov.innerHTML=''
+            +'<div class="align-loader-card">'
+            +'<div class="align-loader-ring"><i></i><i></i><i></i></div>'
+            +'<div class="align-loader-title" id="alignLoaderTitle"></div>'
+            +'<div class="align-loader-sub" id="alignLoaderSub"></div>'
+            +'</div>';
+        host.appendChild(ov);
+    }
+    var labelMap={ai_smart_match:'AI SmartMatch',bestch:'BESTCH',direct:'Direct Pixel'};
+    var title=(typeof t==='function'?t('align.applying'):'')||'Applying alignment';
+    var sub=(typeof t==='function'?t('align.processing'):'')||'Processing images, please wait…';
+    document.getElementById('alignLoaderTitle').textContent=title+' — '+(labelMap[mode]||mode);
+    document.getElementById('alignLoaderSub').textContent=sub;
+    ov.classList.add('show');
+}
+function _hideAlignLoader(){
+    var ov=document.getElementById('alignLoaderOverlay');
+    if(ov)ov.classList.remove('show');
+}
+function _scheduleAlignLoader(mode){
+    /* Wait 180ms before showing — fast operations don't flash a loader. */
+    if(_alignAutoApply.loaderTimer){clearTimeout(_alignAutoApply.loaderTimer);}
+    _alignAutoApply.loaderTimer=setTimeout(function(){_showAlignLoader(mode);},180);
+}
+function _clearAlignLoader(){
+    if(_alignAutoApply.loaderTimer){
+        clearTimeout(_alignAutoApply.loaderTimer);
+        _alignAutoApply.loaderTimer=null;
+    }
+    _hideAlignLoader();
+}
+
+function _restoreOriginalWorkspace(){
+    if(State.refDataUrlOriginal){
+        State.refDataUrl=State.refDataUrlOriginal;
+        State.refW=State.refWOriginal||State.refW;
+        State.refH=State.refHOriginal||State.refH;
+        var rname=State.refFile?State.refFile.name:'reference.png';
+        showPreview('ref',State.refDataUrl,State.refW,State.refH,rname);
+    }
+    if(State.sampleDataUrlOriginal){
+        State.sampleDataUrl=State.sampleDataUrlOriginal;
+        State.sampleW=State.sampleWOriginal||State.sampleW;
+        State.sampleH=State.sampleHOriginal||State.sampleH;
+        var sname=State.sampleFile?State.sampleFile.name:'sample.png';
+        showPreview('sample',State.sampleDataUrl,State.sampleW,State.sampleH,sname);
+    }
+    updateSliderMax();updateRegionOverlays();
+}
+
+function applyAlignmentToWorkspace(mode){
+    mode=mode||'direct';
+    if(_alignAutoApply.lastMode===mode)return;
+    _alignAutoApply.lastMode=mode;
+
+    if(mode==='direct'){_restoreOriginalWorkspace();_clearAlignLoader();return;}
+
+    if(!State.refFile||!State.sampleFile){
+        log(t('log.align.need.images')||'Load both images before applying an alignment technique','warn');
+        _clearAlignLoader();
+        return;
+    }
+
+    /* Always run alignment from the original images, never the previously aligned result */
+    var refBase=State.refDataUrlOriginal||State.refDataUrl;
+    var samBase=State.sampleDataUrlOriginal||State.sampleDataUrl;
+    if(!refBase||!samBase)return;
+
+    var fd=new FormData();
+    fd.append('mode',mode);
+    fd.append('region_data',JSON.stringify(buildRegionData()||{}));
+
+    function _dataUrlToBlob(dataUrl){
+        var parts=dataUrl.split(',');
+        var meta=parts[0];var b64=parts[1];
+        var mime=(meta.match(/data:([^;]+)/)||[])[1]||'image/png';
+        var bin=atob(b64);var arr=new Uint8Array(bin.length);
+        for(var i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+        return new Blob([arr],{type:mime});
+    }
+
+    try{
+        fd.append('ref_image',_dataUrlToBlob(refBase),(State.refFile&&State.refFile.name)||'ref.png');
+        fd.append('sample_image',_dataUrlToBlob(samBase),(State.sampleFile&&State.sampleFile.name)||'sample.png');
+    }catch(err){log('Alignment auto-apply: failed to package images: '+err.message,'error');return;}
+
+    if(_alignAutoApply.inFlight){try{_alignAutoApply.inFlight.abort();}catch(e){}}
+    var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+    _alignAutoApply.inFlight=ctrl;
+
+    log(t('log.align.applying')||('Applying alignment: '+mode),'info');
+    _scheduleAlignLoader(mode);
+
+    fetch('/api/alignment/preview',{method:'POST',body:fd,signal:ctrl?ctrl.signal:undefined})
+        .then(function(r){return r.json();})
+        .then(function(data){
+            _alignAutoApply.inFlight=null;
+            _clearAlignLoader();
+            if(!data||!data.success||!data.previews){
+                log((data&&data.error)||'Alignment preview failed','error');
+                return;
+            }
+            var p=data.previews;
+            var newRefSrc=p.ref_cropped?'data:image/png;base64,'+p.ref_cropped
+                          :(p.ref_source?'data:image/png;base64,'+p.ref_source:null);
+            var alignedSrc=p.aligned?'data:image/png;base64,'+p.aligned:null;
+
+            function _apply(which,src,wKey,hKey,urlKey){
+                if(!src)return;
+                var img=new Image();
+                img.onload=function(){
+                    State[wKey]=img.naturalWidth;State[hKey]=img.naturalHeight;
+                    State[urlKey]=src;
+                    var fname=which==='ref'
+                        ?(State.refFile?State.refFile.name:'reference.png')
+                        :(State.sampleFile?State.sampleFile.name:'aligned_sample.png');
+                    showPreview(which,src,img.naturalWidth,img.naturalHeight,fname);
+                    updateSliderMax();updateRegionOverlays();
+                };
+                img.src=src;
+            }
+            _apply('ref',newRefSrc,'refW','refH','refDataUrl');
+            _apply('sample',alignedSrc,'sampleW','sampleH','sampleDataUrl');
+            log(t('log.align.applied')||('Alignment applied: '+mode),'success');
+        })
+        .catch(function(err){
+            _alignAutoApply.inFlight=null;
+            _clearAlignLoader();
+            if(err&&err.name==='AbortError')return;
+            log('Alignment preview error: '+err.message,'error');
+        });
 }
 
 /* ═══ SPACTRA Studio (v3.0.0) ═══ */

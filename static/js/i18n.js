@@ -28,6 +28,11 @@ var I18n = {
             'dl.fallback.hint': 'If the download didn\'t start, click the button below',
             'dl.fallback.btn': 'Download Now',
 
+            // Web app maintenance (static hosting — analysis via desktop app)
+            'web.maintenance.title': 'Web application under maintenance',
+            'web.maintenance.body': 'The web application is temporarily under maintenance. For the best experience and access to all features, please use the SpectraMatch desktop application for Windows.',
+            'web.maintenance.download': 'Download desktop installer (.exe)',
+
             // Sample Tests
             'samples': 'Samples',
             'sample.tests': 'Sample Tests',
@@ -644,6 +649,13 @@ var I18n = {
             'summary': 'Summary',
             'conclusion': 'Conclusion',
 
+            // Boundary Detection Sensitivity
+            'boundary.sensitivity.title': 'Boundary Detection Sensitivity (1 \u2013 10)',
+            'boundary.sensitivity.desc': 'Controls how aggressively the Gradient and Phase methods highlight problematic regions. Higher values detect more subtle differences; lower values show only obvious defects.',
+            'gradient.boundary.sensitivity': 'Gradient Boundary Sensitivity',
+            'phase.boundary.sensitivity': 'Phase Boundary Sensitivity',
+            'boundary.sensitivity.hint': '1 = strict, 10 = permissive',
+
             // Detailed Results Panel
             'rpt.report.summary': 'Report Summary',
             'rpt.color.scoring': 'Color Scoring',
@@ -749,6 +761,10 @@ var I18n = {
             'dl.fallback.title': 'İndirme işleminiz otomatik olarak başlamalıdır',
             'dl.fallback.hint': 'İndirme başlamadıysa aşağıdaki butona tıklayın',
             'dl.fallback.btn': 'Şimdi İndir',
+
+            'web.maintenance.title': 'Web uygulaması bakımda',
+            'web.maintenance.body': 'Web uygulaması geçici olarak bakımdadır. En iyi deneyim ve tüm özelliklere erişim için Windows için SpectraMatch masaüstü uygulamasını kullanmanızı öneririz.',
+            'web.maintenance.download': 'Masaüstü kurulum dosyasını indir (.exe)',
 
             // Sample Tests
             'samples': 'Örnekler',
@@ -1363,6 +1379,13 @@ var I18n = {
             'phase.boundary': 'Faz Sınırı',
             'summary': 'Özet',
             'conclusion': 'Sonuç',
+
+            // Boundary Detection Sensitivity
+            'boundary.sensitivity.title': 'Sınır Tespit Hassasiyeti (1 – 10)',
+            'boundary.sensitivity.desc': 'Gradyan ve Faz yöntemlerinin sorunlu bölgeleri ne kadar agresif şekilde vurguladığını kontrol eder. Yüksek değerler daha ince farkları tespit eder; düşük değerler yalnızca belirgin kusurları gösterir.',
+            'gradient.boundary.sensitivity': 'Gradyan Sınır Hassasiyeti',
+            'phase.boundary.sensitivity': 'Faz Sınır Hassasiyeti',
+            'boundary.sensitivity.hint': '1 = katı, 10 = esnek',
 
             // Detailed Results Panel
             'rpt.report.summary': 'Rapor Özeti',

@@ -75,6 +75,9 @@ DEFAULT_CONFIG = {
         'Structural Match': {'pass': 85.0, 'conditional': 70.0}
     },
     'global_threshold': 75.0,
+    # Boundary detection sensitivity dials (1=strict … 10=permissive). 5 is balanced.
+    'gradient_boundary_sensitivity': 5,
+    'phase_boundary_sensitivity':    5,
     'sections': {
         'ssim': True,
         'gradient': True,
@@ -281,6 +284,163 @@ def preprocess_to_structure(img):
     filtered = cv2.bilateralFilter(gray, 9, 75, 75)
     return filtered
 
+
+# ─────────────────────────────────────────────────────────────────────────
+# Boundary-detection helpers (Gradient & Phase)
+#
+# Both methods share an identical pipeline:
+#   1) Build a validity mask that excludes near-black background regions of
+#      the structure-preprocessed images. Tiny Sobel noise / absdiff jitter
+#      in dark areas was previously dominating the difference map and
+#      causing huge red blobs (sometimes covering the whole image).
+#   2) Threshold the diff map using percentile-on-valid-pixels combined
+#      with an ABSOLUTE noise floor. This stops the percentile rule from
+#      always flagging a fixed fraction of the image even when there is
+#      effectively no difference.
+#   3) Use light morphology so masks no longer balloon.
+#   4) Compute similarity metrics with a mathematically sound formula that
+#      is naturally bounded to [0, 100].
+# ─────────────────────────────────────────────────────────────────────────
+
+# Pixels with intensity <= this in BOTH ref and sample (after preprocessing)
+# are considered background and excluded from boundary analysis.
+# Kept low so only true near-black background is removed; legitimate dark
+# fabric tones still participate.
+_BOUNDARY_NEAR_BLACK = 12
+# Default sensitivity (1 = least sensitive / strict, 10 = most sensitive /
+# permissive).  8 gives a good balance for typical textile analysis.
+BOUNDARY_DEFAULT_SENSITIVITY = 8
+
+
+def _sensitivity_to_thresholds(sensitivity):
+    """Map a 1..10 sensitivity dial to the three internal threshold knobs.
+
+    Returns ``(percentile, absolute_floor, min_area_fraction)`` where:
+      * ``percentile``        — keep diffs above this percentile of valid pixels
+      * ``absolute_floor``    — minimum diff (on [0,1]) to be considered signal
+      * ``min_area_fraction`` — minimum contour area as a fraction of image area
+
+    Sensitivity 1 → strict (only obvious defects survive every cut).
+    Sensitivity 10 → permissive (small/subtle deltas are flagged).
+    Sensitivity 5 ≈ previously hard-coded balanced defaults.
+    """
+    try:
+        s = float(sensitivity)
+    except Exception:
+        s = float(BOUNDARY_DEFAULT_SENSITIVITY)
+    s = max(1.0, min(10.0, s))
+    step = (s - 1.0) / 9.0   # 0..1
+    # Linear interpolation between the strict (s=1) and permissive (s=10) ends.
+    percentile      = 90.0   - 35.0   * step    # 90 → 55
+    absolute_floor  = 0.10   - 0.09   * step    # 0.10 → 0.01
+    min_area_frac   = 0.0010 - 0.0009 * step    # 0.0010 → 0.0001
+    return percentile, absolute_floor, min_area_frac
+
+
+def _compute_validity_mask(ref_gray, sample_gray):
+    """uint8 (0/255) mask where BOTH images carry meaningful (non-near-black) content."""
+    valid = (ref_gray > _BOUNDARY_NEAR_BLACK) & (sample_gray > _BOUNDARY_NEAR_BLACK)
+    return valid.astype(np.uint8) * 255
+
+
+def _detect_problem_regions(diff_map, valid_mask, sensitivity=BOUNDARY_DEFAULT_SENSITIVITY):
+    """Return (diff_mask uint8, significant_contours_list, valid_pixel_count).
+
+    Boundaries are constrained to the valid area; near-black regions are
+    never flagged. Threshold = max(percentile_on_valid, absolute_floor).
+    The three internal thresholds are derived from the 1..10 ``sensitivity``
+    dial via :func:`_sensitivity_to_thresholds`.
+    """
+    pct_p, abs_floor, min_area_frac = _sensitivity_to_thresholds(sensitivity)
+
+    valid_bool = valid_mask > 0
+    valid_count = int(np.count_nonzero(valid_bool))
+    h, w = diff_map.shape[:2]
+    if valid_count == 0:
+        return np.zeros((h, w), dtype=np.uint8), [], 0
+
+    valid_diffs = diff_map[valid_bool]
+    pct_thresh = float(np.percentile(valid_diffs, pct_p))
+    threshold  = max(pct_thresh, abs_floor)
+
+    diff_mask = ((diff_map > threshold) & valid_bool).astype(np.uint8) * 255
+
+    # Light morphology: open removes speckle, close fills tiny gaps. No
+    # aggressive multi-iteration dilation that previously bloated masks.
+    k5 = np.ones((5, 5), np.uint8)
+    diff_mask = cv2.morphologyEx(diff_mask, cv2.MORPH_OPEN,  k5, iterations=1)
+    diff_mask = cv2.morphologyEx(diff_mask, cv2.MORPH_CLOSE, k5, iterations=1)
+    diff_mask = cv2.dilate(diff_mask, np.ones((3, 3), np.uint8), iterations=1)
+    # Re-clip to validity area: dilation may have leaked into background.
+    diff_mask = cv2.bitwise_and(diff_mask, valid_mask)
+
+    contours, _ = cv2.findContours(diff_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    min_area = max(150.0, min_area_frac * float(h * w))
+    sig_cnts = [c for c in contours if cv2.contourArea(c) >= min_area]
+    return diff_mask, sig_cnts, valid_count
+
+
+def _draw_boundary_overlays(sample, diff_mask, sig_cnts):
+    """Build (contoured_rgb, filled_rgb) from the sample and significant contours."""
+    sample_vis = composite_over_black(sample)
+    sample_rgb = cv2.cvtColor(sample_vis, cv2.COLOR_BGR2RGB)
+    if sample_rgb.shape[:2] != diff_mask.shape:
+        sample_rgb = cv2.resize(sample_rgb, (diff_mask.shape[1], diff_mask.shape[0]))
+    contoured = sample_rgb.copy()
+    filled    = sample_rgb.copy()
+    if sig_cnts:
+        cv2.drawContours(contoured, sig_cnts, -1, (255, 0, 0), thickness=4)
+        fill_mask = np.zeros(diff_mask.shape, dtype=np.uint8)
+        cv2.drawContours(fill_mask, sig_cnts, -1, 255, -1)
+        sel = fill_mask == 255
+        filled[sel] = (filled[sel] * 0.6 + np.array([255, 0, 0]) * 0.4).astype(np.uint8)
+        cv2.drawContours(filled, sig_cnts, -1, (255, 0, 0), thickness=4)
+    return contoured, filled
+
+
+def _compute_similarity_metrics(diff_map, diff_mask, valid_count):
+    """Return (binary_similarity, weighted_similarity), both clamped to [0, 100].
+
+    binary_similarity   = (1 - problematic_pixels / valid_pixels) * 100
+    weighted_similarity = (1 - mean_intensity_in_problem * problem_area_frac) * 100
+
+    Both formulas are guaranteed to fall in [0, 100] because every factor
+    is itself in [0, 1]; the previous formula (problematic / non-problematic)
+    was unbounded and produced negative or >100 results when the mask was
+    larger than half the image.
+    """
+    if valid_count <= 0:
+        return 100.0, 100.0
+
+    problem_count = int(np.count_nonzero(diff_mask))
+    bin_coef = (1.0 - problem_count / float(valid_count)) * 100.0
+
+    if problem_count > 0:
+        max_diff = float(np.max(diff_map))
+        diff_norm = diff_map / (max_diff + 1e-10) if max_diff > 0 else diff_map
+        mean_intensity = float(np.mean(diff_norm[diff_mask > 0]))    # in [0, 1]
+        area_frac      = problem_count / float(valid_count)          # in [0, 1]
+        penalty = mean_intensity * area_frac                          # in [0, 1]
+    else:
+        penalty = 0.0
+    wei_coef = (1.0 - penalty) * 100.0
+
+    bin_coef = float(max(0.0, min(100.0, bin_coef)))
+    wei_coef = float(max(0.0, min(100.0, wei_coef)))
+    return bin_coef, wei_coef
+
+
+def _clamp_score(score):
+    """Defensive clamp so per-method similarity scores never report < 0 or > 100."""
+    try:
+        s = float(score)
+    except Exception:
+        return 0.0
+    if not np.isfinite(s):
+        return 0.0
+    return max(0.0, min(100.0, s))
+
+
 def method1_structural_ssim(ref, sample):
     ref_gray = preprocess_to_structure(ref)
     sample_gray = preprocess_to_structure(sample)
@@ -290,14 +450,16 @@ def method1_structural_ssim(ref, sample):
     score, diff_img = ssim(ref_gray, sample_gray, full=True)
     diff_img = (diff_img * 255).astype(np.uint8)
     diff_img_colored = cv2.applyColorMap(255 - diff_img, cv2.COLORMAP_JET)
-    return score * 100, diff_img_colored
+    return _clamp_score(score * 100), diff_img_colored
 
 def method3_gradient_similarity(ref, sample):
     ref_gray = preprocess_to_structure(ref)
     sample_gray = preprocess_to_structure(sample)
     if ref_gray.shape != sample_gray.shape:
         sample_gray = cv2.resize(sample_gray, (ref_gray.shape[1], ref_gray.shape[0]))
-        
+
+    valid_mask = _compute_validity_mask(ref_gray, sample_gray)
+
     ref_gx = cv2.Sobel(ref_gray, cv2.CV_64F, 1, 0, ksize=3)
     ref_gy = cv2.Sobel(ref_gray, cv2.CV_64F, 0, 1, ksize=3)
     ref_mag = np.sqrt(ref_gx**2 + ref_gy**2)
@@ -316,8 +478,13 @@ def method3_gradient_similarity(ref, sample):
     diff_img = (diff_img * 255).astype(np.uint8)
     diff_img_colored = cv2.applyColorMap(255 - diff_img, cv2.COLORMAP_HOT)
     
-    gradient_diff = np.abs(ref_mag_norm - sample_mag_norm)
-    return score * 100, diff_img_colored, {'gradient_diff': gradient_diff}
+    gradient_diff = np.abs(ref_mag_norm - sample_mag_norm).astype(np.float32)
+    # Suppress diff signal in near-black regions so they cannot drive boundaries.
+    gradient_diff = gradient_diff * (valid_mask.astype(np.float32) / 255.0)
+    return _clamp_score(score * 100), diff_img_colored, {
+        'gradient_diff': gradient_diff,
+        'valid_mask'  : valid_mask,
+    }
 
 
 
@@ -339,83 +506,34 @@ def method6_phase_correlation(ref, sample):
     phase_diff = cv2.absdiff(ref_gray, sample_gray)
     diff_img = cv2.applyColorMap(phase_diff, cv2.COLORMAP_INFERNO)
     phase_diff_norm = phase_diff.astype(np.float32) / 255.0
-    return score, diff_img, {'phase_diff': phase_diff_norm}
+    # Suppress diff signal in near-black regions for the boundary stage.
+    valid_mask = _compute_validity_mask(ref_gray, sample_gray)
+    phase_diff_norm = phase_diff_norm * (valid_mask.astype(np.float32) / 255.0)
+    return _clamp_score(score), diff_img, {
+        'phase_diff': phase_diff_norm,
+        'valid_mask': valid_mask,
+    }
 
-def create_gradient_red_boundaries(sample, gradient_data):
-    gradient_diff = gradient_data['gradient_diff']
-    threshold = np.percentile(gradient_diff, 70)
-    diff_mask = (gradient_diff > threshold).astype(np.uint8) * 255
-    kernel = np.ones((7, 7), np.uint8)
-    diff_mask = cv2.morphologyEx(diff_mask, cv2.MORPH_CLOSE, kernel, iterations=2)
-    diff_mask = cv2.morphologyEx(diff_mask, cv2.MORPH_OPEN, kernel, iterations=1)
-    diff_mask = cv2.dilate(diff_mask, np.ones((5, 5), np.uint8), iterations=2)
-    
-    contours, _ = cv2.findContours(diff_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    sample_vis = composite_over_black(sample)
-    sample_rgb = cv2.cvtColor(sample_vis, cv2.COLOR_BGR2RGB)
-    if sample_rgb.shape[:2] != diff_mask.shape:
-        sample_rgb = cv2.resize(sample_rgb, (diff_mask.shape[1], diff_mask.shape[0]))
-    
-    contoured = sample_rgb.copy()
-    filled = sample_rgb.copy()
-    
-    sig_cnts = [cnt for cnt in contours if cv2.contourArea(cnt) > 100]
-    cv2.drawContours(contoured, sig_cnts, -1, (255, 0, 0), thickness=4)
-    for c in sig_cnts:
-        m = np.zeros(diff_mask.shape, dtype=np.uint8)
-        cv2.drawContours(m, [c], -1, 255, -1)
-        filled[m == 255] = filled[m == 255] * 0.6 + np.array([255, 0, 0]) * 0.4
-    cv2.drawContours(filled, sig_cnts, -1, (255, 0, 0), thickness=4)
-    
-    total = gradient_diff.size
-    colored = np.count_nonzero(diff_mask)
-    black = total - colored
-    bin_coef = (100 - (colored/black)*100) if black > 0 else 0
-    
-    diff_norm = gradient_diff / (np.max(gradient_diff) + 1e-10)
-    col_ints = diff_norm[diff_mask > 0]
-    w_sum = np.sum(col_ints)
-    wei_coef = (100 - (w_sum/black)*100) if black > 0 else 0
-    
+def create_gradient_red_boundaries(sample, gradient_data, sensitivity=BOUNDARY_DEFAULT_SENSITIVITY):
+    diff = gradient_data['gradient_diff']
+    valid_mask = gradient_data.get('valid_mask')
+    if valid_mask is None:
+        valid_mask = np.full(diff.shape, 255, dtype=np.uint8)
+
+    diff_mask, sig_cnts, valid_count = _detect_problem_regions(diff, valid_mask, sensitivity)
+    contoured, filled = _draw_boundary_overlays(sample, diff_mask, sig_cnts)
+    bin_coef, wei_coef = _compute_similarity_metrics(diff, diff_mask, valid_count)
     return contoured, filled, bin_coef, wei_coef, len(sig_cnts)
 
-def create_phase_red_boundaries(sample, phase_data):
-    phase_diff = phase_data['phase_diff']
-    # Same logic as gradient
-    threshold = np.percentile(phase_diff, 70)
-    diff_mask = (phase_diff > threshold).astype(np.uint8) * 255
-    kernel = np.ones((7, 7), np.uint8)
-    diff_mask = cv2.morphologyEx(diff_mask, cv2.MORPH_CLOSE, kernel, iterations=2)
-    diff_mask = cv2.morphologyEx(diff_mask, cv2.MORPH_OPEN, kernel, iterations=1)
-    diff_mask = cv2.dilate(diff_mask, np.ones((5, 5), np.uint8), iterations=2)
-    
-    contours, _ = cv2.findContours(diff_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    sample_vis = composite_over_black(sample)
-    sample_rgb = cv2.cvtColor(sample_vis, cv2.COLOR_BGR2RGB)
-    if sample_rgb.shape[:2] != diff_mask.shape:
-        sample_rgb = cv2.resize(sample_rgb, (diff_mask.shape[1], diff_mask.shape[0]))
-    
-    contoured = sample_rgb.copy()
-    filled = sample_rgb.copy()
-    
-    sig_cnts = [cnt for cnt in contours if cv2.contourArea(cnt) > 100]
-    cv2.drawContours(contoured, sig_cnts, -1, (255, 0, 0), thickness=4)
-    for c in sig_cnts:
-        m = np.zeros(diff_mask.shape, dtype=np.uint8)
-        cv2.drawContours(m, [c], -1, 255, -1)
-        filled[m == 255] = filled[m == 255] * 0.6 + np.array([255, 0, 0]) * 0.4
-    cv2.drawContours(filled, sig_cnts, -1, (255, 0, 0), thickness=4)
-    
-    total = phase_diff.size
-    colored = np.count_nonzero(diff_mask)
-    black = total - colored
-    bin_coef = (100 - (colored/black)*100) if black > 0 else 0
-    
-    diff_norm = phase_diff / (np.max(phase_diff) + 1e-10)
-    col_ints = diff_norm[diff_mask > 0]
-    w_sum = np.sum(col_ints)
-    wei_coef = (100 - (w_sum/black)*100) if black > 0 else 0
-    
+def create_phase_red_boundaries(sample, phase_data, sensitivity=BOUNDARY_DEFAULT_SENSITIVITY):
+    diff = phase_data['phase_diff']
+    valid_mask = phase_data.get('valid_mask')
+    if valid_mask is None:
+        valid_mask = np.full(diff.shape, 255, dtype=np.uint8)
+
+    diff_mask, sig_cnts, valid_count = _detect_problem_regions(diff, valid_mask, sensitivity)
+    contoured, filled = _draw_boundary_overlays(sample, diff_mask, sig_cnts)
+    bin_coef, wei_coef = _compute_similarity_metrics(diff, diff_mask, valid_count)
     return contoured, filled, bin_coef, wei_coef, len(sig_cnts)
 
 def determine_status(value, pass_t, cond_t, lower_is_better=False):
@@ -1273,7 +1391,12 @@ def generate_pdf_headless(ref_img, sample_img, scores, diff_images, composite_sc
 def analyze_and_generate(ref_img, sample_img, config, output_path, report_id=None, timestamp=None, is_combined=False):
     cfg = config or DEFAULT_CONFIG
     sections = cfg.get('sections', {})
-    
+
+    # Boundary detection sensitivity (1..10). Independent dials per method
+    # so the UI can tune Gradient and Phase boundary detection separately.
+    grad_sens  = cfg.get('gradient_boundary_sensitivity', BOUNDARY_DEFAULT_SENSITIVITY)
+    phase_sens = cfg.get('phase_boundary_sensitivity',    BOUNDARY_DEFAULT_SENSITIVITY)
+
     scores = {}
     diff_images = {}
     active_count = 0
@@ -1296,7 +1419,7 @@ def analyze_and_generate(ref_img, sample_img, config, output_path, report_id=Non
     # 2. Gradient
     if sections.get('gradient', True) or sections.get('gradient_boundary', True) or any_deps_enabled:
         sc, di, data = method3_gradient_similarity(ref_img, sample_img)
-        grad_res = create_gradient_red_boundaries(sample_img, data) # Always needed if ran? Used in PDF generation.
+        grad_res = create_gradient_red_boundaries(sample_img, data, sensitivity=grad_sens)
         # Store score if gradient specifically or dependants
         if sections.get('gradient', True) or any_deps_enabled:
             scores['Gradient Similarity'] = sc
@@ -1306,7 +1429,7 @@ def analyze_and_generate(ref_img, sample_img, config, output_path, report_id=Non
     # 3. Phase
     if sections.get('phase', True) or sections.get('phase_boundary', True) or any_deps_enabled:
         sc, di, data = method6_phase_correlation(ref_img, sample_img)
-        phase_res = create_phase_red_boundaries(sample_img, data)
+        phase_res = create_phase_red_boundaries(sample_img, data, sensitivity=phase_sens)
         if sections.get('phase', True) or any_deps_enabled:
             scores['Phase Correlation'] = sc
             diff_images['Phase Correlation'] = di

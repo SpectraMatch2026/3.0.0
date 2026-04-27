@@ -174,10 +174,18 @@
                    data-i18n-title="tb.title.sampling.count" title="Sampling Count">
         </div>
         <div class="tb-spacer"></div>
-        <div class="tb-group">
+        <div class="tb-group tb-right-tools" id="tbRightTools">
+            <button class="tb-btn tb-icon-btn tb-more-btn" id="tbMoreBtn"
+                    data-i18n-title="tb.title.more" title="More tools" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/>
+                </svg>
+            </button>
+            <div class="tb-right-tools-inner" id="tbRightToolsInner">
             <div class="tb-ready-test-wrap">
                 <button class="tb-btn tb-icon-btn tb-ready-test-btn" id="tbReadyTest" data-i18n-title="tb.title.ready.test" title="Ready-to-Test Images">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+                    <span class="tb-btn-label" data-i18n="tb.title.ready.test">Ready-to-Test Images</span>
                 </button>
                 <div class="tb-ready-dropdown" id="tbReadyDropdown">
                     <div class="tb-ready-header" data-i18n="rtt.title">Ready-to-Test Images</div>
@@ -215,17 +223,21 @@
             </div>
             <button class="tb-btn tb-icon-btn" id="tbDatasheet" data-i18n-title="tb.title.datasheet" title="Technical Datasheet">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span class="tb-btn-label" data-i18n="tb.title.datasheet">Technical Datasheet</span>
             </button>
             <button class="tb-btn tb-icon-btn" id="tbFeedback" data-i18n-title="tb.title.feedback" title="Send Feedback">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <span class="tb-btn-label" data-i18n="tb.title.feedback">Send Feedback</span>
             </button>
             <button class="tb-btn tb-icon-btn" id="tbThesisTest" data-i18n-title="tb.title.thesis.test" title="Test for Thesis">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                <span class="tb-btn-label" data-i18n="tb.title.thesis.test">Test for Thesis</span>
             </button>
             <button class="tb-btn tb-reset-btn" id="tbReset" data-i18n-title="tb.title.reset" title="Reset to Default" onclick="Desktop.resetToDefault()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
                 <span data-i18n="tb.reset">Reset</span>
             </button>
+            </div>
         </div>
     </div>
 
@@ -439,6 +451,20 @@
                         <div class="prop-row-dual"><label data-i18n="prop.phase">Phase</label><input type="number" id="propPhasePass" value="85.0" step="0.1" min="0.1" max="99.9" placeholder="Pass"><input type="number" id="propPhaseCond" value="70.0" step="0.1" min="0.1" max="99.9" placeholder="Cond"></div>
                         <div class="prop-row-dual"><label data-i18n="prop.structural.match">Structural</label><input type="number" id="propStructuralPass" value="85.0" step="0.1" min="0.1" max="99.9" placeholder="Pass"><input type="number" id="propStructuralCond" value="70.0" step="0.1" min="0.1" max="99.9" placeholder="Cond"></div>
                         <div class="prop-row"><label data-i18n="prop.global.thresh">Global Thresh.</label><input type="number" id="propPatternGlobal" value="75.0" step="0.1" min="0.1" max="99.9"></div>
+                        <div class="prop-separator"></div>
+                        <div class="prop-label-row" data-i18n="prop.boundary.sensitivity">Boundary Detection Sensitivity</div>
+                        <div class="prop-row prop-row-slider">
+                            <label data-i18n="prop.gradient.sens">Gradient Sensitivity</label>
+                            <input type="range" id="propGradBoundSens" class="prop-slider" min="1" max="10" step="1" value="8"
+                                   oninput="document.getElementById('propGradBoundSensVal').textContent=this.value">
+                            <span class="prop-slider-value" id="propGradBoundSensVal">8</span>
+                        </div>
+                        <div class="prop-row prop-row-slider">
+                            <label data-i18n="prop.phase.sens">Phase Sensitivity</label>
+                            <input type="range" id="propPhaseBoundSens" class="prop-slider" min="1" max="10" step="1" value="8"
+                                   oninput="document.getElementById('propPhaseBoundSensVal').textContent=this.value">
+                            <span class="prop-slider-value" id="propPhaseBoundSensVal">8</span>
+                        </div>
                     </div>
                 </div>
 

@@ -31,6 +31,9 @@ Desktop.ini
 *.backup
 *.log
 
+# Netlify generated site (rebuilt on each deploy)
+netlify_publish/
+
 # Installer build artifacts
 installer/output/
 installer/build/

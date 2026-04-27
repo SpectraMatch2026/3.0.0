@@ -819,6 +819,56 @@ input, select, textarea, button { font-family: inherit; font-size: inherit; }
 
 .prop-row-dual input:focus { border-color: var(--border-focus); }
 
+/* Slider row inside the properties panel (e.g. boundary sensitivity 1–10) */
+.prop-row-slider {
+    display: grid;
+    grid-template-columns: 1fr 1fr 28px;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+}
+.prop-row-slider > label {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+.prop-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+.prop-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+}
+.prop-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg-panel);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+}
+.prop-slider-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-bright);
+    text-align: right;
+    min-width: 18px;
+}
+
 .prop-label-row {
     font-size: 10px;
     font-weight: 600;
@@ -2738,6 +2788,107 @@ select option {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   RIGHT TOOLBAR — COLLAPSIBLE WHEN FULL IMAGE OFF
+   ═══════════════════════════════════════════════════════════ */
+.tb-right-tools {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+/* Default: more button hidden, inner items shown inline */
+.tb-right-tools .tb-more-btn { display: none; }
+.tb-right-tools-inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Collapsed mode: hide inline items, show only the "more" button */
+.tb-right-tools.collapsed .tb-more-btn { display: inline-flex; }
+.tb-right-tools.collapsed .tb-right-tools-inner {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 1000;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 200px;
+    padding: 6px;
+    gap: 2px;
+    /* Theme-aware: --bg-dropdown is defined for both light and dark themes */
+    background: var(--bg-dropdown);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.14);
+    animation: tbMoreFadeIn 0.15s ease;
+}
+[data-theme="dark"] .tb-right-tools.collapsed .tb-right-tools-inner {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.tb-right-tools.collapsed.show .tb-right-tools-inner { display: flex; }
+
+/* Inside the popover, expand each button into a full-width row with its label */
+.tb-right-tools.collapsed .tb-right-tools-inner > .tb-btn,
+.tb-right-tools.collapsed .tb-right-tools-inner > .tb-ready-test-wrap > .tb-btn {
+    justify-content: flex-start;
+    width: 100%;
+    height: 32px;
+    padding: 0 12px;
+    gap: 10px;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid transparent;
+    font-size: 12px;
+}
+.tb-right-tools.collapsed .tb-right-tools-inner > .tb-btn:hover,
+.tb-right-tools.collapsed .tb-right-tools-inner > .tb-ready-test-wrap > .tb-btn:hover {
+    background: var(--accent);
+    color: #ffffff;
+}
+.tb-right-tools.collapsed .tb-ready-test-wrap {
+    width: 100%;
+}
+
+/* Explicit text labels for the icon-only toolbar buttons.
+   Hidden by default (toolbar shows icons only for compactness) and
+   revealed only when the button is rendered inside the collapsed
+   right-tools popover so the menu reads "[icon] [label]" in both
+   Light and Dark themes and across locales. */
+.tb-btn-label { display: none; }
+.tb-right-tools.collapsed .tb-right-tools-inner .tb-btn-label {
+    display: inline;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    color: inherit;
+    white-space: nowrap;
+}
+
+/* When popover is open, anchor the Ready-to-Test sub-dropdown to the side */
+.tb-right-tools.collapsed .tb-ready-dropdown {
+    top: 0;
+    right: calc(100% + 6px);
+    left: auto;
+}
+
+@keyframes tbMoreFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.tb-more-btn {
+    color: var(--text) !important;
+}
+.tb-more-btn:hover {
+    background: var(--accent) !important;
+    color: #ffffff !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
    READY-TO-TEST DROPDOWN
    ═══════════════════════════════════════════════════════════ */
 .tb-ready-test-wrap {
@@ -2987,4 +3138,92 @@ select option {
 .exit-btn-close:active {
     transform: translateY(0);
     box-shadow: 0 1px 4px rgba(217, 83, 79, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ALIGNMENT AUTO-APPLY LOADER (theme-aware, no percentage)
+   Anchored to #panelViewer; appears after a short delay so
+   instant operations never flash a loader.
+   ═══════════════════════════════════════════════════════════ */
+#panelViewer { position: relative; }
+
+.align-loader-overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+    background: rgba(0, 0, 0, 0.32);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    animation: alignLoaderFade 0.18s ease;
+}
+[data-theme="light"] .align-loader-overlay {
+    background: rgba(255, 255, 255, 0.55);
+}
+.align-loader-overlay.show { display: flex; }
+
+.align-loader-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    min-width: 240px;
+    padding: 22px 32px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+[data-theme="dark"] .align-loader-card {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+/* Layered concentric rings rotating at different speeds — clean, modern,
+   no percentage. Uses brand --accent for unmistakable visual identity. */
+.align-loader-ring {
+    position: relative;
+    width: 46px;
+    height: 46px;
+}
+.align-loader-ring > i {
+    position: absolute;
+    inset: 0;
+    border: 3px solid transparent;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: alignLoaderSpin 1.1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+.align-loader-ring > i:nth-child(2) {
+    border-top-color: transparent;
+    border-right-color: var(--accent);
+    opacity: 0.55;
+    animation-duration: 1.6s;
+    animation-direction: reverse;
+}
+.align-loader-ring > i:nth-child(3) {
+    inset: 9px;
+    border-width: 2px;
+    opacity: 0.35;
+    animation-duration: 2.0s;
+}
+
+.align-loader-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-bright);
+    text-align: center;
+}
+.align-loader-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+}
+
+@keyframes alignLoaderSpin { to { transform: rotate(360deg); } }
+@keyframes alignLoaderFade  {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
