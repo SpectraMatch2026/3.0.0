@@ -71,7 +71,7 @@ Upload the `.exe` to one of:
 
 Then set the environment variable:
 ```bash
-DESKTOP_INSTALLER_URL=https://github.com/SpectraMatch2026/3.0.0/releases/download/v3.0.0/SpectraMatch_Setup_3.0.0.exe
+DESKTOP_INSTALLER_URL=https://github.com/SpectraMatch2026/3.0.0/raw/main/static/downloads/SpectraMatch_Setup_3.0.0.exe
 ```
 
 The Flask route will automatically redirect to this URL instead of serving the local file.

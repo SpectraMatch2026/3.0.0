@@ -32,7 +32,8 @@ var IlluminantTabOriginalNextSibling = null;
 var WEB_ANALYSIS_DISABLED = true;
 
 /** Windows installer URL (GitHub Release); used by the maintenance modal on static hosting. */
-var DESKTOP_INSTALLER_DIRECT_URL = 'https://github.com/SpectraMatch2026/3.0.0/releases/download/v3.0.0/SpectraMatch_Setup_3.0.0.exe';
+/** Windows installer path (served from same site: Netlify/Flask; repo copy: static/downloads/) */
+var DESKTOP_INSTALLER_DIRECT_URL = '/static/downloads/SpectraMatch_Setup_3.0.0.exe';
 
 // Point Selector State
 var PointSelectorState = {
