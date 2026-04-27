@@ -188,10 +188,6 @@ def download_desktop_installer():
 
 
 @app.route("/datasheets")
-def datasheets_redirect():
-    return redirect("/datasheets/", code=301)
-
-
 @app.route("/datasheets/")
 def datasheets_page():
     return render_template("datasheets.html")

@@ -34,6 +34,9 @@ def main() -> None:
                 f"Build requires datasheet PDF: missing {os.path.relpath(src, ROOT)}"
             )
         shutil.copy2(src, os.path.join(OUT, name))
+    extras = os.path.join(ROOT, "netlify_extras", "_redirects")
+    if os.path.isfile(extras):
+        shutil.copy2(extras, os.path.join(OUT, "_redirects"))
     print("Netlify publish directory ready.")
 
 

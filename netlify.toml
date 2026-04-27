@@ -8,11 +8,12 @@
 [build.environment]
   PYTHON_VERSION = "3.12"
 
-# Pretty URL for the datasheets page
+# Serve the datasheets landing at /datasheets (no trailing slash) — static hosts
+# often 404 on /datasheets even when /datasheets/ works; 200 rewrites are reliable.
 [[redirects]]
   from = "/datasheets"
-  to = "/datasheets/"
-  status = 301
+  to = "/datasheets/index.html"
+  status = 200
   force = true
 
 [[headers]]

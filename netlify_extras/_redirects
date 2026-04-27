@@ -1,0 +1,2 @@
+# /datasheets (no trailing slash) -> same HTML as /datasheets/ (see netlify.toml too)
+/datasheets /datasheets/index.html 200
