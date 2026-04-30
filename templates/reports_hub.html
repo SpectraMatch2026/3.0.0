@@ -117,18 +117,16 @@
             </article>
         </div>
 
-        <section class="reports-tez-panel" id="tezReportsSection" aria-labelledby="tezPanelTitleEn">
-            <h2 class="reports-tez-heading" id="tezPanelTitleEn">Thesis — National Thesis Center</h2>
-            <h2 class="reports-tez-heading" id="tezPanelTitleTr" lang="tr" hidden>Tez — Ulusal Tez Merkezi</h2>
-            <p class="reports-tez-lead" id="tezPanelLeadEn">Open the official YÖK portal when your dissertation is registered for open access.</p>
-            <p class="reports-tez-lead" id="tezPanelLeadTr" lang="tr" hidden>Teziniz Ulusal Tez Merkezi’nde açık erişime sunulduğunda resmî YÖK portalını kullanın.</p>
-            <button type="button" class="reports-tez-btn" id="tezModalOpen" aria-haspopup="dialog"
+        <section class="reports-tez-wrap" id="tezReportsSection" aria-labelledby="tezSrEn">
+            <h2 class="reports-sr-only" id="tezSrEn">Full thesis download</h2>
+            <h2 class="reports-sr-only" id="tezSrTr" lang="tr" hidden>Tam tez indirme</h2>
+            <button type="button" class="reports-tez-chip" id="tezModalOpen" aria-haspopup="dialog"
                 aria-controls="tezNationalModal">
-                <img class="reports-tez-logo" src="/static/images/TEZ.png" alt="YÖK Ulusal Tez Merkezi">
-                <span class="reports-tez-btn-labels">
-                    <span class="reports-tez-btn-main" id="tezBtnLabelEn">Thesis download (when available)</span>
-                    <span class="reports-tez-btn-main" id="tezBtnLabelTr" lang="tr" hidden>Tez indir (yayınlandığında)</span>
-                </span>
+                <span class="reports-tez-chip-glow" aria-hidden="true"></span>
+                <img class="reports-tez-chip-img" src="/static/images/TEZ.png" alt=""
+                    aria-hidden="true">
+                <span class="reports-tez-chip-label" id="tezBtnLabelEn">Download full thesis</span>
+                <span class="reports-tez-chip-label" id="tezBtnLabelTr" lang="tr" hidden>Tam tez indir</span>
             </button>
         </section>
 
@@ -144,18 +142,14 @@
         aria-labelledby="tezModalTitleEn" hidden data-tez-modal>
         <div class="reports-modal-backdrop" data-tez-close tabindex="-1" aria-hidden="true"></div>
         <div class="reports-modal-card">
-            <div class="reports-modal-brand">
-                <img src="/static/images/logo_square_with_name_1024x1024.png" width="48" height="48"
-                    alt="SpectraMatch">
-                <div class="reports-modal-brand-text">
-                    <span class="reports-modal-brand-name">SpectraMatch</span>
-                    <span class="reports-modal-brand-sub" id="tezModalKickerEn">Thesis access notice</span>
-                    <span class="reports-modal-brand-sub" id="tezModalKickerTr" lang="tr" hidden>Tez erişim bilgisi</span>
-                </div>
+            <div class="reports-modal-yokbar">
                 <button type="button" class="reports-modal-close" data-tez-close
                     aria-label="Close">&times;</button>
             </div>
             <div class="reports-modal-body">
+                <div class="reports-modal-yok-brand">
+                    <img class="reports-modal-yok-logo" src="/static/images/TEZ.png" alt="YÖK Ulusal Tez Merkezi">
+                </div>
                 <h3 class="reports-modal-title" id="tezModalTitleEn">National Thesis Center (YÖK)</h3>
                 <h3 class="reports-modal-title" id="tezModalTitleTr" lang="tr" hidden>Ulusal Tez Merkezi (YÖK)</h3>
                 <p class="reports-modal-p" id="tezModalBodyEn">This dissertation has not yet been uploaded to the
@@ -189,9 +183,9 @@
                 ['c2tEn', 'c2tTr'], ['c2dEn', 'c2dTr'], ['c2dlEn', 'c2dlTr'], ['c2opEn', 'c2opTr'],
                 ['c3tEn', 'c3tTr'], ['c3dEn', 'c3dTr'], ['c3dlEn', 'c3dlTr'], ['c3opEn', 'c3opTr'],
                 ['c4tEn', 'c4tTr'], ['c4dEn', 'c4dTr'], ['c4dlEn', 'c4dlTr'], ['c4opEn', 'c4opTr'],
-                ['tezPanelTitleEn', 'tezPanelTitleTr'], ['tezPanelLeadEn', 'tezPanelLeadTr'],
+                ['tezSrEn', 'tezSrTr'],
                 ['tezBtnLabelEn', 'tezBtnLabelTr'],
-                ['tezModalKickerEn', 'tezModalKickerTr'], ['tezModalTitleEn', 'tezModalTitleTr'],
+                ['tezModalTitleEn', 'tezModalTitleTr'],
                 ['tezModalBodyEn', 'tezModalBodyTr'], ['tezModalVisitSubEn', 'tezModalVisitSubTr'],
                 ['hubNoteEn', 'hubNoteTr']
             ];
@@ -206,7 +200,7 @@
                 }
                 var tezSec = document.getElementById('tezReportsSection');
                 if (tezSec) {
-                    tezSec.setAttribute('aria-labelledby', tr ? 'tezPanelTitleTr' : 'tezPanelTitleEn');
+                    tezSec.setAttribute('aria-labelledby', tr ? 'tezSrTr' : 'tezSrEn');
                 }
                 pairs.forEach(function (p) {
                     var a = document.getElementById(p[0]);
