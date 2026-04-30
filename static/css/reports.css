@@ -394,3 +394,225 @@
 .reports-hub-footer a:hover {
     text-decoration: underline;
 }
+
+/* —— Ulusal Tez Merkezi CTA + modal —— */
+.reports-tez-panel {
+    margin-top: 2rem;
+    padding: 1.35rem 1.4rem 1.45rem;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.07);
+    text-align: center;
+}
+
+.reports-tez-heading {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.45rem;
+    letter-spacing: -0.02em;
+}
+
+.reports-tez-lead {
+    font-size: 0.88rem;
+    color: #64748b;
+    margin: 0 auto 1.1rem;
+    max-width: 36rem;
+    line-height: 1.5;
+}
+
+.reports-tez-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 0.85rem 1.15rem;
+    border-radius: 14px;
+    border: 1px solid rgba(0, 102, 204, 0.22);
+    background: linear-gradient(180deg, #ffffff 0%, #f0f7ff 100%);
+    cursor: pointer;
+    font: inherit;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.06);
+    transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
+}
+
+.reports-tez-btn:hover {
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.14);
+    border-color: rgba(0, 102, 204, 0.35);
+    transform: translateY(-1px);
+}
+
+.reports-tez-btn:focus {
+    outline: 2px solid #0066cc;
+    outline-offset: 2px;
+}
+
+.reports-tez-logo {
+    height: 48px;
+    width: auto;
+    max-width: 140px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.reports-tez-btn-labels {
+    text-align: left;
+}
+
+.reports-tez-btn-main {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.35;
+}
+
+body.reports-modal-open {
+    overflow: hidden;
+}
+
+.reports-modal-root[hidden] {
+    display: none !important;
+}
+
+.reports-modal-root {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    box-sizing: border-box;
+}
+
+.reports-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+}
+
+.reports-modal-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 440px;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.28);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.reports-modal-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1rem 1rem 1.15rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 55%, #0c4a6e 100%);
+    color: #f1f5f9;
+}
+
+.reports-modal-brand-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.reports-modal-brand-name {
+    display: block;
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.reports-modal-brand-sub {
+    display: block;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-top: 0.15rem;
+}
+
+.reports-modal-close {
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.reports-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.reports-modal-body {
+    background: #f8fafc;
+    padding: 1.35rem 1.35rem 1.45rem;
+}
+
+.reports-modal-title {
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.reports-modal-p {
+    margin: 0 0 1.15rem;
+    font-size: 0.88rem;
+    color: #475569;
+    line-height: 1.55;
+}
+
+.reports-modal-visit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.3rem;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #fff;
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 45%, #991b1b 100%);
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    box-sizing: border-box;
+    transition: filter 0.2s, transform 0.15s;
+    border: 1px solid rgba(127, 29, 29, 0.5);
+}
+
+.reports-modal-visit:hover {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+}
+
+.reports-modal-visit:focus {
+    outline: 2px solid #0066cc;
+    outline-offset: 3px;
+}
+
+.reports-modal-visit-title {
+    font-size: 0.88rem;
+}
+
+.reports-modal-visit-url {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    opacity: 0.95;
+    word-break: break-all;
+}
