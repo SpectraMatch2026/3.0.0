@@ -22,6 +22,7 @@
         <div class="reports-lang" role="group" aria-label="Language">
             <button type="button" id="langEn" aria-pressed="true">English</button>
             <button type="button" id="langTr" aria-pressed="false">Türkçe</button>
+            <button type="button" id="langAr" aria-pressed="false">العربية</button>
         </div>
     </header>
 
@@ -31,8 +32,10 @@
                 alt="SpectraMatch — Textile color &amp; pattern analysis">
             <h1 id="hubTitleEn">Sample analysis reports</h1>
             <h1 id="hubTitleTr" lang="tr" hidden>Örnek analiz raporları</h1>
+            <h1 id="hubTitleAr" lang="ar" hidden>تقارير التحليل النموذجية</h1>
             <p class="reports-hub-sub" id="hubSubEn">Official PDF outputs (illustrative) with direct download and in-browser viewing.</p>
             <p class="reports-hub-sub" id="hubSubTr" lang="tr" hidden>Bu sayfa, örnek çıktı PDF belgelerine doğrudan indirme ve tarayıcı içi görüntüleme bağlantıları sunar.</p>
+            <p class="reports-hub-sub" id="hubSubAr" lang="ar" hidden>مخرجات PDF رسمية (توضيحية) مع التنزيل المباشر والعرض في المتصفح.</p>
         </div>
 
         <div class="reports-cards">
@@ -115,64 +118,67 @@
                     <a class="reports-open" href="/settingsreport/"><span id="c4opEn">Open in browser</span><span id="c4opTr" lang="tr" hidden>Tarayıcıda aç</span></a>
                 </div>
             </article>
+        </div>
 
-            <article class="reports-card">
-                <h2 id="c5tEn">Thesis Download</h2>
-                <h2 id="c5tTr" lang="tr" hidden>Tez İndir</h2>
-                <p id="c5dEn">National Thesis Center (YÖK) submission record.</p>
-                <p id="c5dTr" lang="tr" hidden>Ulusal Tez Merkezi (YÖK) gönderim kaydı.</p>
-                <div class="reports-card-actions">
-                    <button type="button" class="reports-dl" id="tezModalBtn">
-                        <img src="/static/images/TEZ.png" alt="YÖK" style="height: 20px; width: auto; margin-right: 8px;">
-                        <span id="c5dlEn">Check Availability</span>
-                        <span id="c5dlTr" lang="tr" hidden>Uygunluğu Kontrol Et</span>
-                    </button>
-                    <a class="reports-open" href="https://tez.yok.gov.tr/UlusalTezMerkezi/" target="_blank">
-                        <span id="c5opEn">Visit Website</span>
-                        <span id="c5opTr" lang="tr" hidden>Web Sitesini Ziyaret Et</span>
-                    </a>
-                </div>
-            </article>
+        <div class="thesis-download-section">
+            <button class="thesis-download-btn" id="thesisBtn">
+                <svg class="thesis-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    <path d="M12 6v6"/>
+                    <path d="M9 9l3 3 3-3"/>
+                </svg>
+                <span id="thesisBtnEn">Download Thesis</span>
+                <span id="thesisBtnTr" lang="tr" hidden>Tezi İndir</span>
+                <span id="thesisBtnAr" lang="ar" hidden>تحميل الأطروحة</span>
+            </button>
         </div>
 
         <p class="reports-hub-footnote" id="hubNoteEn">These files are representative PDF outputs for documentation and thesis reference. The live application is hosted at <a href="https://spectramatch.com.ly/">spectramatch.com.ly</a>.</p>
         <p class="reports-hub-footnote" id="hubNoteTr" lang="tr" hidden>Bu dosyalar, dokümantasyon ve tez referansı için örnek PDF çıktılarıdır. Canlı uygulama <a href="https://spectramatch.com.ly/">spectramatch.com.ly</a> adresinde barındırılmaktadır.</p>
+        <p class="reports-hub-footnote" id="hubNoteAr" lang="ar" hidden>هذه الملفات هي مخرجات PDF تمثيلية للتوثيق والمرجع الأطروحة. التطبيق المباشر مستضاف على <a href="https://spectramatch.com.ly/">spectramatch.com.ly</a>.</p>
     </main>
 
     <footer class="reports-hub-footer">
         <a href="https://spectramatch.com.ly/">spectramatch.com.ly</a>
     </footer>
 
-    <!-- Modal for Thesis Status -->
-    <div id="tezModal" class="tez-modal" aria-hidden="true">
-        <div class="tez-modal-overlay"></div>
-        <div class="tez-modal-container" role="dialog" aria-labelledby="tezModalTitle">
-            <div class="tez-modal-content">
-                <div class="tez-modal-header">
-                    <img src="/static/images/logo_square_with_name_1024x1024.png" alt="SpectraMatch" class="tez-modal-logo">
-                    <button type="button" class="tez-modal-close" id="tezModalCloseBtn" aria-label="Close">&times;</button>
-                </div>
-                <div class="tez-modal-body">
-                    <div class="tez-partner-logo-wrap">
-                        <img src="/static/images/TEZ.png" alt="Ulusal Tez Merkezi" class="tez-partner-logo">
-                    </div>
-                    <h2 id="tezModalTitleEn">Thesis Availability</h2>
-                    <h2 id="tezModalTitleTr" lang="tr" hidden>Tez Durumu</h2>
-                    
-                    <p id="tezModalDescEn">The official thesis has not been uploaded to the National Thesis Center yet. It will be available for download once the submission process is complete.</p>
-                    <p id="tezModalDescTr" lang="tr" hidden>Resmi tez henüz Ulusal Tez Merkezi'ne yüklenmemiştir. Yükleme işlemi tamamlandığında indirilebilir olacaktır.</p>
-                    
-                    <div class="tez-modal-actions">
-                        <a href="https://tez.yok.gov.tr/UlusalTezMerkezi/" target="_blank" class="tez-btn-primary">
-                            <span id="tezBtnVisitEn">Visit ULUSAL TEZ MERKEZİ</span>
-                            <span id="tezBtnVisitTr" lang="tr" hidden>ULUSAL TEZ MERKEZİ'ni Ziyaret Et</span>
-                        </a>
-                        <button type="button" class="tez-btn-secondary" id="tezModalCloseBtn2">
-                            <span id="tezBtnCloseEn">Close</span>
-                            <span id="tezBtnCloseTr" lang="tr" hidden>Kapat</span>
-                        </button>
-                    </div>
-                </div>
+    <div class="thesis-modal" id="thesisModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+        <div class="thesis-modal-overlay" id="modalOverlay"></div>
+        <div class="thesis-modal-content">
+            <button class="thesis-modal-close" id="modalClose" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            
+            <div class="thesis-modal-header">
+                <img src="/static/images/TEZ.png" alt="ULUSAL TEZ MERKEZİ" class="thesis-modal-logo">
+                <img src="/static/images/logo_vertical_512x256.png" alt="SpectraMatch" class="thesis-modal-brand">
+            </div>
+
+            <div class="thesis-modal-body">
+                <h2 id="modalTitle">
+                    <span id="modalTitleEn">Thesis Download</span>
+                    <span id="modalTitleTr" lang="tr" hidden>Tez İndirme</span>
+                    <span id="modalTitleAr" lang="ar" hidden>تحميل الأطروحة</span>
+                </h2>
+                <p class="thesis-modal-message">
+                    <span id="modalMsgEn">The thesis has not yet been uploaded to the National Thesis Center. Once it is uploaded and approved, it will be available for download from this platform.</span>
+                    <span id="modalMsgTr" lang="tr" hidden>Tez henüz Ulusal Tez Merkezi'ne yüklenmemiştir. Yüklenip onaylandığında, bu platformdan indirilebilir olacaktır.</span>
+                    <span id="modalMsgAr" lang="ar" hidden>لم يتم تحميل الأطروحة بعد إلى المركز الوطني للأطروحات. بمجرد تحميلها والموافقة عليها، ستكون متاحة للتنزيل من هذه المنصة.</span>
+                </p>
+                <a href="https://tez.yok.gov.tr/UlusalTezMerkezi" target="_blank" rel="noopener noreferrer" class="thesis-modal-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/>
+                        <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                    <span id="modalLinkEn">Visit ULUSAL TEZ MERKEZİ</span>
+                    <span id="modalLinkTr" lang="tr" hidden>ULUSAL TEZ MERKEZİ'ni Ziyaret Et</span>
+                    <span id="modalLinkAr" lang="ar" hidden>زيارة المركز الوطني للأطروحات</span>
+                </a>
             </div>
         </div>
     </div>
@@ -181,65 +187,68 @@
             var KEY = 'spectramatch_reports_lang';
             var enBtn = document.getElementById('langEn');
             var trBtn = document.getElementById('langTr');
+            var arBtn = document.getElementById('langAr');
             var pairs = [
-                ['hubTitleEn', 'hubTitleTr'],
-                ['hubSubEn', 'hubSubTr'],
+                ['hubTitleEn', 'hubTitleTr', 'hubTitleAr'],
+                ['hubSubEn', 'hubSubTr', 'hubSubAr'],
                 ['c1tEn', 'c1tTr'], ['c1dEn', 'c1dTr'], ['c1dlEn', 'c1dlTr'], ['c1opEn', 'c1opTr'],
                 ['c2tEn', 'c2tTr'], ['c2dEn', 'c2dTr'], ['c2dlEn', 'c2dlTr'], ['c2opEn', 'c2opTr'],
                 ['c3tEn', 'c3tTr'], ['c3dEn', 'c3dTr'], ['c3dlEn', 'c3dlTr'], ['c3opEn', 'c3opTr'],
                 ['c4tEn', 'c4tTr'], ['c4dEn', 'c4dTr'], ['c4dlEn', 'c4dlTr'], ['c4opEn', 'c4opTr'],
-                ['c5tEn', 'c5tTr'], ['c5dEn', 'c5dTr'], ['c5dlEn', 'c5dlTr'], ['c5opEn', 'c5opTr'],
-                ['tezModalTitleEn', 'tezModalTitleTr'],
-                ['tezModalDescEn', 'tezModalDescTr'],
-                ['tezBtnVisitEn', 'tezBtnVisitTr'],
-                ['tezBtnCloseEn', 'tezBtnCloseTr'],
-                ['hubNoteEn', 'hubNoteTr']
+                ['hubNoteEn', 'hubNoteTr', 'hubNoteAr'],
+                ['thesisBtnEn', 'thesisBtnTr', 'thesisBtnAr'],
+                ['modalTitleEn', 'modalTitleTr', 'modalTitleAr'],
+                ['modalMsgEn', 'modalMsgTr', 'modalMsgAr'],
+                ['modalLinkEn', 'modalLinkTr', 'modalLinkAr']
             ];
-            function setLang(tr) {
-                document.documentElement.lang = tr ? 'tr' : 'en';
-                enBtn.setAttribute('aria-pressed', tr ? 'false' : 'true');
-                trBtn.setAttribute('aria-pressed', tr ? 'true' : 'false');
+            function setLang(lang) {
+                document.documentElement.lang = lang;
+                document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+                enBtn.setAttribute('aria-pressed', lang === 'en' ? 'true' : 'false');
+                trBtn.setAttribute('aria-pressed', lang === 'tr' ? 'true' : 'false');
+                arBtn.setAttribute('aria-pressed', lang === 'ar' ? 'true' : 'false');
                 pairs.forEach(function (p) {
-                    var a = document.getElementById(p[0]);
-                    var b = document.getElementById(p[1]);
-                    if (!a || !b) return;
-                    a.hidden = !!tr;
-                    b.hidden = !tr;
+                    for (var i = 0; i < p.length; i++) {
+                        var el = document.getElementById(p[i]);
+                        if (!el) continue;
+                        if (i === 0) el.hidden = lang !== 'en';
+                        else if (i === 1) el.hidden = lang !== 'tr';
+                        else if (i === 2) el.hidden = lang !== 'ar';
+                    }
                 });
-                try { localStorage.setItem(KEY, tr ? 'tr' : 'en'); } catch (e) { }
+                try { localStorage.setItem(KEY, lang); } catch (e) { }
             }
-            enBtn.addEventListener('click', function () { setLang(false); });
-            trBtn.addEventListener('click', function () { setLang(true); });
+            enBtn.addEventListener('click', function () { setLang('en'); });
+            trBtn.addEventListener('click', function () { setLang('tr'); });
+            arBtn.addEventListener('click', function () { setLang('ar'); });
+            var stored = null;
             try { stored = localStorage.getItem(KEY); } catch (e) { }
-            if (stored === 'tr') setLang(true);
+            if (stored === 'tr') setLang('tr');
+            else if (stored === 'ar') setLang('ar');
 
-            // Modal Logic
-            var modal = document.getElementById('tezModal');
-            var openBtn = document.getElementById('tezModalBtn');
-            var closeBtn = document.getElementById('tezModalCloseBtn');
-            var closeBtn2 = document.getElementById('tezModalCloseBtn2');
+            var thesisBtn = document.getElementById('thesisBtn');
+            var thesisModal = document.getElementById('thesisModal');
+            var modalClose = document.getElementById('modalClose');
+            var modalOverlay = document.getElementById('modalOverlay');
 
             function openModal() {
-                modal.classList.add('is-active');
-                modal.setAttribute('aria-hidden', 'false');
+                thesisModal.hidden = false;
                 document.body.style.overflow = 'hidden';
+                modalClose.focus();
             }
 
             function closeModal() {
-                modal.classList.remove('is-active');
-                modal.setAttribute('aria-hidden', 'true');
+                thesisModal.hidden = true;
                 document.body.style.overflow = '';
+                thesisBtn.focus();
             }
 
-            openBtn.addEventListener('click', openModal);
-            closeBtn.addEventListener('click', closeModal);
-            closeBtn2.addEventListener('click', closeModal);
-            modal.querySelector('.tez-modal-overlay').addEventListener('click', closeModal);
+            thesisBtn.addEventListener('click', openModal);
+            modalClose.addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', closeModal);
 
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal.classList.contains('is-active')) {
-                    closeModal();
-                }
+            thesisModal.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeModal();
             });
         })();
     </script>

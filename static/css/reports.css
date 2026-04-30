@@ -395,155 +395,222 @@
     text-decoration: underline;
 }
 
-/* —— Tez Modal —— */
-.tez-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-}
-
-.tez-modal.is-active {
-    display: flex;
-}
-
-.tez-modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(4px);
-}
-
-.tez-modal-container {
-    position: relative;
-    width: 90%;
-    max-width: 480px;
-    background: #fff;
-    border-radius: 24px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    animation: tezModalFadeIn 0.3s ease-out;
-}
-
-@keyframes tezModalFadeIn {
-    from { opacity: 0; transform: translateY(20px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.tez-modal-content {
-    display: flex;
-    flex-direction: column;
-}
-
-.tez-modal-header {
-    padding: 1.25rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.tez-modal-logo {
-    height: 32px;
-    width: auto;
-}
-
-.tez-modal-close {
-    background: #f1f5f9;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: #64748b;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-    line-height: 1;
-}
-
-.tez-modal-close:hover {
-    background: #e2e8f0;
-    color: #0f172a;
-}
-
-.tez-modal-body {
-    padding: 2rem 1.5rem;
+/* —— Thesis Download Section —— */
+.thesis-download-section {
+    margin-top: 2rem;
     text-align: center;
 }
 
-.tez-partner-logo-wrap {
-    margin-bottom: 1.5rem;
+.thesis-download-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
 }
 
-.tez-partner-logo {
-    height: 80px;
-    width: auto;
+.thesis-download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.45);
+    filter: brightness(1.08);
 }
 
-.tez-modal-body h2 {
-    font-size: 1.5rem;
-    font-weight: 800;
+.thesis-download-btn:active {
+    transform: translateY(0);
+}
+
+.thesis-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+/* —— Thesis Modal —— */
+.thesis-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.thesis-modal[hidden] {
+    display: none;
+}
+
+.thesis-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.25s ease-out;
+}
+
+.thesis-modal-content {
+    position: relative;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+    max-width: 560px;
+    width: 100%;
+    padding: 2rem;
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.thesis-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(100, 116, 139, 0.1);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #64748b;
+}
+
+.thesis-modal-close:hover {
+    background: rgba(100, 116, 139, 0.2);
+    color: #0f172a;
+}
+
+.thesis-modal-close svg {
+    width: 20px;
+    height: 20px;
+}
+
+.thesis-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.thesis-modal-logo {
+    max-width: 140px;
+    height: auto;
+}
+
+.thesis-modal-brand {
+    max-width: 120px;
+    height: auto;
+}
+
+.thesis-modal-body h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
     color: #0f172a;
     margin: 0 0 1rem;
+    text-align: center;
     letter-spacing: -0.02em;
 }
 
-.tez-modal-body p {
-    font-size: 1rem;
-    color: #64748b;
-    line-height: 1.6;
-    margin: 0 0 2rem;
-}
-
-.tez-modal-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.tez-btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.85rem 1.5rem;
-    background: linear-gradient(135deg, #0066cc, #0088ff);
-    color: #fff;
-    text-decoration: none;
-    font-weight: 700;
-    border-radius: 12px;
-    transition: filter 0.2s, transform 0.1s;
-}
-
-.tez-btn-primary:hover {
-    filter: brightness(1.05);
-    transform: translateY(-1px);
-}
-
-.tez-btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.85rem 1.5rem;
-    background: #f8fafc;
+.thesis-modal-message {
+    font-size: 0.95rem;
     color: #475569;
-    border: 1px solid #e2e8f0;
-    font-weight: 600;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: background 0.2s;
+    line-height: 1.65;
+    margin: 0 0 1.75rem;
+    text-align: center;
 }
 
-.tez-btn-secondary:hover {
-    background: #f1f5f9;
+.thesis-modal-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #0066cc, #0284c7);
+    border: none;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.25s;
+    box-shadow: 0 4px 16px rgba(0, 102, 204, 0.25);
+}
+
+.thesis-modal-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0, 102, 204, 0.35);
+    filter: brightness(1.06);
+}
+
+.thesis-modal-link svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* RTL Support for Arabic */
+[dir="rtl"] .thesis-modal-close {
+    right: auto;
+    left: 1rem;
+}
+
+[dir="rtl"] .thesis-modal-body h2,
+[dir="rtl"] .thesis-modal-message {
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .thesis-modal-content {
+        padding: 1.5rem;
+    }
+
+    .thesis-modal-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .thesis-modal-logo,
+    .thesis-modal-brand {
+        max-width: 100px;
+    }
+
+    .thesis-modal-body h2 {
+        font-size: 1.15rem;
+    }
+
+    .thesis-modal-message {
+        font-size: 0.88rem;
+    }
 }
