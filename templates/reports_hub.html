@@ -97,38 +97,23 @@
             </article>
 
             <article class="reports-card">
-                <h2 id="c4tEn">Settings receipt</h2>
-                <h2 id="c4tTr" lang="tr" hidden>Ayarlar özeti</h2>
-                <p id="c4dEn">Session configuration snapshot (reset / audit trail of parameters).</p>
-                <p id="c4dTr" lang="tr" hidden>Oturum yapılandırması özeti (parametrelerin denetim kaydı).</p>
+                <h2 id="c5tEn">Thesis Download</h2>
+                <h2 id="c5tTr" lang="tr" hidden>Tez İndir</h2>
+                <p id="c5dEn">National Thesis Center (YÖK) submission record.</p>
+                <p id="c5dTr" lang="tr" hidden>Ulusal Tez Merkezi (YÖK) gönderim kaydı.</p>
                 <div class="reports-card-actions">
-                    <a class="reports-dl" href="/settingsreport.pdf" download="SpectraMatch_Settings_Receipt.pdf">
-                        <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            aria-hidden="true">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="7 10 12 15 17 10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        <span id="c4dlEn">Download PDF</span>
-                        <span id="c4dlTr" lang="tr" hidden>PDF indir</span>
+                    <button type="button" class="reports-dl" id="tezModalBtn">
+                        <img src="/static/images/TEZ.png" alt="YÖK" style="height: 20px; width: auto; margin-right: 8px;">
+                        <span id="c5dlEn">Check Availability</span>
+                        <span id="c5dlTr" lang="tr" hidden>Uygunluğu Kontrol Et</span>
+                    </button>
+                    <a class="reports-open" href="https://tez.yok.gov.tr/UlusalTezMerkezi/" target="_blank">
+                        <span id="c5opEn">Visit Website</span>
+                        <span id="c5opTr" lang="tr" hidden>Web Sitesini Ziyaret Et</span>
                     </a>
-                    <a class="reports-open" href="/settingsreport/"><span id="c4opEn">Open in browser</span><span id="c4opTr" lang="tr" hidden>Tarayıcıda aç</span></a>
                 </div>
             </article>
         </div>
-
-        <section class="reports-tez-wrap" id="tezReportsSection" aria-labelledby="tezSrEn">
-            <h2 class="reports-sr-only" id="tezSrEn">Full thesis download</h2>
-            <h2 class="reports-sr-only" id="tezSrTr" lang="tr" hidden>Tam tez indirme</h2>
-            <button type="button" class="reports-tez-chip" id="tezModalOpen" aria-haspopup="dialog"
-                aria-controls="tezNationalModal">
-                <span class="reports-tez-chip-glow" aria-hidden="true"></span>
-                <img class="reports-tez-chip-img" src="/static/images/TEZ.png" alt=""
-                    aria-hidden="true">
-                <span class="reports-tez-chip-label" id="tezBtnLabelEn">Download full thesis</span>
-                <span class="reports-tez-chip-label" id="tezBtnLabelTr" lang="tr" hidden>Tam tez indir</span>
-            </button>
-        </section>
 
         <p class="reports-hub-footnote" id="hubNoteEn">These files are representative PDF outputs for documentation and thesis reference. The live application is hosted at <a href="https://spectramatch.com.ly/">spectramatch.com.ly</a>.</p>
         <p class="reports-hub-footnote" id="hubNoteTr" lang="tr" hidden>Bu dosyalar, dokümantasyon ve tez referansı için örnek PDF çıktılarıdır. Canlı uygulama <a href="https://spectramatch.com.ly/">spectramatch.com.ly</a> adresinde barındırılmaktadır.</p>
@@ -138,44 +123,44 @@
         <a href="https://spectramatch.com.ly/">spectramatch.com.ly</a>
     </footer>
 
-    <div class="reports-modal-root" id="tezNationalModal" role="dialog" aria-modal="true"
-        aria-labelledby="tezModalTitleEn" hidden data-tez-modal>
-        <div class="reports-modal-backdrop" data-tez-close tabindex="-1" aria-hidden="true"></div>
-        <div class="reports-modal-card">
-            <div class="reports-modal-yokbar">
-                <button type="button" class="reports-modal-close" data-tez-close
-                    aria-label="Close">&times;</button>
-            </div>
-            <div class="reports-modal-body">
-                <div class="reports-modal-yok-brand">
-                    <img class="reports-modal-yok-logo" src="/static/images/TEZ.png" alt="YÖK Ulusal Tez Merkezi">
+    <!-- Modal for Thesis Status -->
+    <div id="tezModal" class="tez-modal" aria-hidden="true">
+        <div class="tez-modal-overlay"></div>
+        <div class="tez-modal-container" role="dialog" aria-labelledby="tezModalTitle">
+            <div class="tez-modal-content">
+                <div class="tez-modal-header">
+                    <img src="/static/images/logo_square_with_name_1024x1024.png" alt="SpectraMatch" class="tez-modal-logo">
+                    <button type="button" class="tez-modal-close" id="tezModalCloseBtn" aria-label="Close">&times;</button>
                 </div>
-                <h3 class="reports-modal-title" id="tezModalTitleEn">National Thesis Center (YÖK)</h3>
-                <h3 class="reports-modal-title" id="tezModalTitleTr" lang="tr" hidden>Ulusal Tez Merkezi (YÖK)</h3>
-                <p class="reports-modal-p" id="tezModalBodyEn">This dissertation has not yet been uploaded to the
-                    Council of Higher Education National Thesis Center. Once institutional submission is complete and
-                    access is granted in line with YÖK policy, the full thesis will be available for download from the
-                    official portal.</p>
-                <p class="reports-modal-p" id="tezModalBodyTr" lang="tr" hidden>Bu tez henüz Yükseköğretim Kurulu
-                    Ulusal Tez Merkezi sistemine yüklenmemiştir. Kurumsal tez teslim süreçleri tamamlandığında ve
-                    erişim koşulları YÖK mevzuatına uygun şekilde sağlandığında, tam metin tez resmî portaldan
-                    indirilebilir olacaktır.</p>
-                <a class="reports-modal-visit" href="https://tez.yok.gov.tr/UlusalTezMerkezi/" target="_blank"
-                    rel="noopener noreferrer">
-                    <span class="reports-modal-visit-title">ULUSAL TEZ MERKEZİ</span>
-                    <span class="reports-modal-visit-url" id="tezModalVisitSubEn">tez.yok.gov.tr/UlusalTezMerkezi/</span>
-                    <span class="reports-modal-visit-url" id="tezModalVisitSubTr" lang="tr" hidden>tez.yok.gov.tr/UlusalTezMerkezi/</span>
-                </a>
+                <div class="tez-modal-body">
+                    <div class="tez-partner-logo-wrap">
+                        <img src="/static/images/TEZ.png" alt="Ulusal Tez Merkezi" class="tez-partner-logo">
+                    </div>
+                    <h2 id="tezModalTitleEn">Thesis Availability</h2>
+                    <h2 id="tezModalTitleTr" lang="tr" hidden>Tez Durumu</h2>
+                    
+                    <p id="tezModalDescEn">The official thesis has not been uploaded to the National Thesis Center yet. It will be available for download once the submission process is complete.</p>
+                    <p id="tezModalDescTr" lang="tr" hidden>Resmi tez henüz Ulusal Tez Merkezi'ne yüklenmemiştir. Yükleme işlemi tamamlandığında indirilebilir olacaktır.</p>
+                    
+                    <div class="tez-modal-actions">
+                        <a href="https://tez.yok.gov.tr/UlusalTezMerkezi/" target="_blank" class="tez-btn-primary">
+                            <span id="tezBtnVisitEn">Visit ULUSAL TEZ MERKEZİ</span>
+                            <span id="tezBtnVisitTr" lang="tr" hidden>ULUSAL TEZ MERKEZİ'ni Ziyaret Et</span>
+                        </a>
+                        <button type="button" class="tez-btn-secondary" id="tezModalCloseBtn2">
+                            <span id="tezBtnCloseEn">Close</span>
+                            <span id="tezBtnCloseTr" lang="tr" hidden>Kapat</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
     <script>
         (function () {
             var KEY = 'spectramatch_reports_lang';
             var enBtn = document.getElementById('langEn');
             var trBtn = document.getElementById('langTr');
-            var modal = document.querySelector('[data-tez-modal]');
             var pairs = [
                 ['hubTitleEn', 'hubTitleTr'],
                 ['hubSubEn', 'hubSubTr'],
@@ -183,25 +168,17 @@
                 ['c2tEn', 'c2tTr'], ['c2dEn', 'c2dTr'], ['c2dlEn', 'c2dlTr'], ['c2opEn', 'c2opTr'],
                 ['c3tEn', 'c3tTr'], ['c3dEn', 'c3dTr'], ['c3dlEn', 'c3dlTr'], ['c3opEn', 'c3opTr'],
                 ['c4tEn', 'c4tTr'], ['c4dEn', 'c4dTr'], ['c4dlEn', 'c4dlTr'], ['c4opEn', 'c4opTr'],
-                ['tezSrEn', 'tezSrTr'],
-                ['tezBtnLabelEn', 'tezBtnLabelTr'],
+                ['c5tEn', 'c5tTr'], ['c5dEn', 'c5dTr'], ['c5dlEn', 'c5dlTr'], ['c5opEn', 'c5opTr'],
                 ['tezModalTitleEn', 'tezModalTitleTr'],
-                ['tezModalBodyEn', 'tezModalBodyTr'], ['tezModalVisitSubEn', 'tezModalVisitSubTr'],
+                ['tezModalDescEn', 'tezModalDescTr'],
+                ['tezBtnVisitEn', 'tezBtnVisitTr'],
+                ['tezBtnCloseEn', 'tezBtnCloseTr'],
                 ['hubNoteEn', 'hubNoteTr']
             ];
             function setLang(tr) {
                 document.documentElement.lang = tr ? 'tr' : 'en';
-                if (enBtn && trBtn) {
-                    enBtn.setAttribute('aria-pressed', tr ? 'false' : 'true');
-                    trBtn.setAttribute('aria-pressed', tr ? 'true' : 'false');
-                }
-                if (modal) {
-                    modal.setAttribute('aria-labelledby', tr ? 'tezModalTitleTr' : 'tezModalTitleEn');
-                }
-                var tezSec = document.getElementById('tezReportsSection');
-                if (tezSec) {
-                    tezSec.setAttribute('aria-labelledby', tr ? 'tezSrTr' : 'tezSrEn');
-                }
+                enBtn.setAttribute('aria-pressed', tr ? 'false' : 'true');
+                trBtn.setAttribute('aria-pressed', tr ? 'true' : 'false');
                 pairs.forEach(function (p) {
                     var a = document.getElementById(p[0]);
                     var b = document.getElementById(p[1]);
@@ -211,37 +188,39 @@
                 });
                 try { localStorage.setItem(KEY, tr ? 'tr' : 'en'); } catch (e) { }
             }
-            if (enBtn) enBtn.addEventListener('click', function () { setLang(false); });
-            if (trBtn) trBtn.addEventListener('click', function () { setLang(true); });
-            var stored = null;
+            enBtn.addEventListener('click', function () { setLang(false); });
+            trBtn.addEventListener('click', function () { setLang(true); });
             try { stored = localStorage.getItem(KEY); } catch (e) { }
             if (stored === 'tr') setLang(true);
 
-            var openBtn = document.getElementById('tezModalOpen');
-            var lastFocus = null;
+            // Modal Logic
+            var modal = document.getElementById('tezModal');
+            var openBtn = document.getElementById('tezModalBtn');
+            var closeBtn = document.getElementById('tezModalCloseBtn');
+            var closeBtn2 = document.getElementById('tezModalCloseBtn2');
+
             function openModal() {
-                if (!modal) return;
-                lastFocus = document.activeElement;
-                modal.hidden = false;
-                document.body.classList.add('reports-modal-open');
-                var visit = modal.querySelector('.reports-modal-visit');
-                if (visit) visit.focus({ preventScroll: true });
+                modal.classList.add('is-active');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
             }
+
             function closeModal() {
-                if (!modal || modal.hidden) return;
-                modal.hidden = true;
-                document.body.classList.remove('reports-modal-open');
-                if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus({ preventScroll: true });
+                modal.classList.remove('is-active');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
             }
-            if (openBtn && modal) {
-                openBtn.addEventListener('click', openModal);
-                modal.querySelectorAll('[data-tez-close]').forEach(function (el) {
-                    el.addEventListener('click', function () { closeModal(); });
-                });
-                document.addEventListener('keydown', function (e) {
-                    if (e.key === 'Escape' && modal && !modal.hidden) closeModal();
-                });
-            }
+
+            openBtn.addEventListener('click', openModal);
+            closeBtn.addEventListener('click', closeModal);
+            closeBtn2.addEventListener('click', closeModal);
+            modal.querySelector('.tez-modal-overlay').addEventListener('click', closeModal);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal.classList.contains('is-active')) {
+                    closeModal();
+                }
+            });
         })();
     </script>
 </body>

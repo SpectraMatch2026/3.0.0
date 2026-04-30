@@ -395,235 +395,155 @@
     text-decoration: underline;
 }
 
-/* —— Ulusal Tez Merkezi: compact chip CTA + modal —— */
-.reports-sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-.reports-tez-wrap {
-    margin-top: 1.5rem;
-    text-align: center;
-}
-
-.reports-tez-chip {
-    position: relative;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    padding: 0.5rem 1rem 0.55rem;
-    border-radius: 14px;
-    cursor: pointer;
-    font: inherit;
-    background: linear-gradient(160deg, #ffffff 0%, #f1f5f9 100%);
-    box-shadow:
-        0 1px 2px rgba(15, 23, 42, 0.06),
-        0 6px 20px rgba(15, 23, 42, 0.08);
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.reports-tez-chip-glow {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    background: radial-gradient(120% 80% at 50% -20%, rgba(0, 102, 204, 0.14), transparent 55%);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-}
-
-.reports-tez-chip:hover {
-    transform: translateY(-2px);
-    box-shadow:
-        0 2px 4px rgba(15, 23, 42, 0.06),
-        0 14px 32px rgba(0, 102, 204, 0.15);
-    border-color: rgba(0, 102, 204, 0.35);
-}
-
-.reports-tez-chip:hover .reports-tez-chip-glow {
-    opacity: 1;
-}
-
-.reports-tez-chip:focus {
-    outline: none;
-}
-
-.reports-tez-chip:focus-visible {
-    outline: 2px solid #0066cc;
-    outline-offset: 3px;
-}
-
-.reports-tez-chip:active {
-    transform: translateY(0);
-}
-
-.reports-tez-chip-img {
-    display: block;
-    height: 32px;
-    width: auto;
-    max-width: 148px;
-    object-fit: contain;
-    flex-shrink: 0;
-}
-
-.reports-tez-chip-label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #475569;
-    line-height: 1.2;
-}
-
-body.reports-modal-open {
-    overflow: hidden;
-}
-
-.reports-modal-root[hidden] {
-    display: none !important;
-}
-
-.reports-modal-root {
+/* —— Tez Modal —— */
+.tez-modal {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 1000;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
-    padding: 1.25rem;
-    box-sizing: border-box;
 }
 
-.reports-modal-backdrop {
+.tez-modal.is-active {
+    display: flex;
+}
+
+.tez-modal-overlay {
     position: absolute;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.55);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.75);
     backdrop-filter: blur(4px);
 }
 
-.reports-modal-card {
+.tez-modal-container {
     position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 400px;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.28);
-    border: 1px solid rgba(148, 163, 184, 0.35);
-}
-
-.reports-modal-yokbar {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 0.45rem 0.5rem;
+    width: 90%;
+    max-width: 480px;
     background: #fff;
-    border-bottom: 1px solid #e2e8f0;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: tezModalFadeIn 0.3s ease-out;
 }
 
-.reports-modal-close {
-    flex-shrink: 0;
-    width: 2.25rem;
-    height: 2.25rem;
-    border: none;
-    border-radius: 10px;
+@keyframes tezModalFadeIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tez-modal-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.tez-modal-header {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.tez-modal-logo {
+    height: 32px;
+    width: auto;
+}
+
+.tez-modal-close {
     background: #f1f5f9;
-    color: #475569;
-    font-size: 1.35rem;
-    line-height: 1;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #64748b;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
+    line-height: 1;
 }
 
-.reports-modal-close:hover {
+.tez-modal-close:hover {
     background: #e2e8f0;
     color: #0f172a;
 }
 
-.reports-modal-body {
-    background: linear-gradient(180deg, #fafafa 0%, #f1f5f9 100%);
-    padding: 0.85rem 1.25rem 1.35rem;
+.tez-modal-body {
+    padding: 2rem 1.5rem;
     text-align: center;
 }
 
-.reports-modal-yok-brand {
-    margin-bottom: 0.85rem;
+.tez-partner-logo-wrap {
+    margin-bottom: 1.5rem;
 }
 
-.reports-modal-yok-logo {
-    display: block;
-    margin: 0 auto;
-    max-width: min(200px, 88vw);
-    max-height: 52px;
+.tez-partner-logo {
+    height: 80px;
     width: auto;
-    height: auto;
-    object-fit: contain;
 }
 
-.reports-modal-title {
-    margin: 0 0 0.65rem;
-    font-size: 0.98rem;
-    font-weight: 700;
+.tez-modal-body h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
     color: #0f172a;
+    margin: 0 0 1rem;
     letter-spacing: -0.02em;
 }
 
-.reports-modal-p {
-    margin: 0 0 1rem;
-    font-size: 0.84rem;
-    color: #475569;
-    line-height: 1.52;
-    text-align: left;
+.tez-modal-body p {
+    font-size: 1rem;
+    color: #64748b;
+    line-height: 1.6;
+    margin: 0 0 2rem;
 }
 
-.reports-modal-visit {
+.tez-modal-actions {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.3rem;
-    width: 100%;
-    padding: 0.85rem 1rem;
-    border-radius: 12px;
-    text-decoration: none;
-    color: #fff;
-    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 45%, #991b1b 100%);
-    font-weight: 700;
-    font-size: 0.82rem;
-    letter-spacing: 0.04em;
-    box-sizing: border-box;
-    transition: filter 0.2s, transform 0.15s;
-    border: 1px solid rgba(127, 29, 29, 0.5);
+    gap: 0.75rem;
 }
 
-.reports-modal-visit:hover {
-    filter: brightness(1.06);
+.tez-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 1.5rem;
+    background: linear-gradient(135deg, #0066cc, #0088ff);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 12px;
+    transition: filter 0.2s, transform 0.1s;
+}
+
+.tez-btn-primary:hover {
+    filter: brightness(1.05);
     transform: translateY(-1px);
 }
 
-.reports-modal-visit:focus {
-    outline: 2px solid #0066cc;
-    outline-offset: 3px;
+.tez-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 1.5rem;
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-.reports-modal-visit-title {
-    font-size: 0.88rem;
-}
-
-.reports-modal-visit-url {
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    opacity: 0.95;
-    word-break: break-all;
+.tez-btn-secondary:hover {
+    background: #f1f5f9;
 }
