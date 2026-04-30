@@ -444,6 +444,10 @@
     z-index: 400;
 }
 
+.reports-modal-overlay[hidden] {
+    display: none !important;
+}
+
 .reports-modal {
     width: min(560px, 100%);
     background: #fff;
