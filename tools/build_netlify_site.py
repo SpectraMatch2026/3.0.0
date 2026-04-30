@@ -8,6 +8,60 @@ import shutil
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "netlify_publish")
 
+THESIS_PDF_DIR = os.path.join(ROOT, "ThesisReprots PDFs")
+# Publish short filenames at site root (canonical spelling; see _redirects for common typos).
+PUBLISHED_PDFS: tuple[tuple[str, str], ...] = (
+    ("Full_Report.pdf", "fullreport.pdf"),
+    ("Color_Report.pdf", "colorreport.pdf"),
+    ("Pattern_Report.pdf", "patternreport.pdf"),
+    ("Settings_Receipt.pdf", "settingsreport.pdf"),
+)
+
+VIEWER_SPECS: tuple[dict[str, str], ...] = (
+    {
+        "slug": "fullreport",
+        "pdf": "fullreport.pdf",
+        "download": "SpectraMatch_Full_Report.pdf",
+        "title_en": "Full report",
+        "title_tr": "Tam analiz raporu",
+        "meta": "SpectraMatch full PDF report — color, pattern, and summary (sample output).",
+    },
+    {
+        "slug": "colorreport",
+        "pdf": "colorreport.pdf",
+        "download": "SpectraMatch_Color_Report.pdf",
+        "title_en": "Color report",
+        "title_tr": "Renk analiz raporu",
+        "meta": "SpectraMatch color PDF report — colorimetric metrics and tables (sample output).",
+    },
+    {
+        "slug": "patternreport",
+        "pdf": "patternreport.pdf",
+        "download": "SpectraMatch_Pattern_Report.pdf",
+        "title_en": "Pattern report",
+        "title_tr": "Desen analiz raporu",
+        "meta": "SpectraMatch pattern PDF report — SSIM, texture, and structure (sample output).",
+    },
+    {
+        "slug": "settingsreport",
+        "pdf": "settingsreport.pdf",
+        "download": "SpectraMatch_Settings_Receipt.pdf",
+        "title_en": "Settings receipt",
+        "title_tr": "Ayarlar özeti (makbuz)",
+        "meta": "SpectraMatch settings receipt PDF — session parameters snapshot (sample output).",
+    },
+)
+
+
+def _render_report_viewer(template: str, spec: dict[str, str]) -> str:
+    return (
+        template.replace("__META_DESC__", spec["meta"])
+        .replace("__TITLE_EN__", spec["title_en"])
+        .replace("__TITLE_TR__", spec["title_tr"])
+        .replace("__PDF_FILE__", spec["pdf"])
+        .replace("__DOWNLOAD_NAME__", spec["download"])
+    )
+
 
 def main() -> None:
     if os.path.isdir(OUT):
@@ -34,6 +88,36 @@ def main() -> None:
                 f"Build requires datasheet PDF: missing {os.path.relpath(src, ROOT)}"
             )
         shutil.copy2(src, os.path.join(OUT, name))
+    # Thesis / sample reports — PDFs + viewer pages + hub
+    viewer_tpl_path = os.path.join(ROOT, "templates", "report_viewer.html")
+    if not os.path.isfile(viewer_tpl_path):
+        raise FileNotFoundError(f"Missing template: {viewer_tpl_path}")
+    with open(viewer_tpl_path, encoding="utf-8") as f:
+        viewer_template = f.read()
+    if not os.path.isdir(THESIS_PDF_DIR):
+        raise FileNotFoundError(
+            f"Build requires folder {os.path.relpath(THESIS_PDF_DIR, ROOT)} "
+            "(copy sample PDFs: Full_Report, Color_Report, Pattern_Report, Settings_Receipt)."
+        )
+    for src_name, out_name in PUBLISHED_PDFS:
+        src = os.path.join(THESIS_PDF_DIR, src_name)
+        if not os.path.isfile(src):
+            raise FileNotFoundError(
+                f"Build requires thesis report PDF: missing {os.path.relpath(src, ROOT)}"
+            )
+        shutil.copy2(src, os.path.join(OUT, out_name))
+    for spec in VIEWER_SPECS:
+        slug_dir = os.path.join(OUT, spec["slug"])
+        os.makedirs(slug_dir, exist_ok=True)
+        html = _render_report_viewer(viewer_template, spec)
+        with open(os.path.join(slug_dir, "index.html"), "w", encoding="utf-8") as out:
+            out.write(html)
+    reports_dir = os.path.join(OUT, "reports")
+    os.makedirs(reports_dir, exist_ok=True)
+    shutil.copy2(
+        os.path.join(ROOT, "templates", "reports_hub.html"),
+        os.path.join(reports_dir, "index.html"),
+    )
     extras = os.path.join(ROOT, "netlify_extras", "_redirects")
     if os.path.isfile(extras):
         shutil.copy2(extras, os.path.join(OUT, "_redirects"))

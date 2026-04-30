@@ -16,6 +16,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/reports"
+  to = "/reports/index.html"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/static/*"
   [headers.values]

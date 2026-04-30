@@ -1,2 +1,8 @@
 # /datasheets (no trailing slash) -> same HTML as /datasheets/ (see netlify.toml too)
 /datasheets /datasheets/index.html 200
+# /reports hub (sample PDF landing)
+/reports /reports/index.html 200
+# Legacy / misspelled PDF filenames -> canonical
+/fullreprort.pdf /fullreport.pdf 301
+/colorrprots.pdf /colorreport.pdf 301
+/patternrepor.pdf /patternreport.pdf 301
