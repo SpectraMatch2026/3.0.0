@@ -7,7 +7,7 @@
     <meta name="description"
         content="Download sample SpectraMatch PDF reports: full, color, pattern, and settings receipt.">
     <title>Sample reports | SpectraMatch</title>
-    <link rel="stylesheet" href="/static/css/reports.css?v=20260430b">
+    <link rel="stylesheet" href="/static/css/reports.css?v=20260430c">
     <link rel="icon" type="image/png" href="/static/images/logo_square_no_name_1024x1024.png">
 </head>
 
@@ -19,9 +19,15 @@
                 alt="SpectraMatch logo">
             <span class="reports-hub-site-name">SpectraMatch</span>
         </a>
-        <div class="reports-lang" role="group" aria-label="Language">
-            <button type="button" id="langEn" aria-pressed="true">English</button>
-            <button type="button" id="langTr" aria-pressed="false">Türkçe</button>
+        <div class="reports-hub-controls">
+            <button type="button" class="reports-thesis-trigger" id="openThesisModal">
+                <span id="thesisBtnEn">Download Thesis</span>
+                <span id="thesisBtnTr" lang="tr" hidden>Tezi İndir</span>
+            </button>
+            <div class="reports-lang" role="group" aria-label="Language">
+                <button type="button" id="langEn" aria-pressed="true">English</button>
+                <button type="button" id="langTr" aria-pressed="false">Türkçe</button>
+            </div>
         </div>
     </header>
 
@@ -33,10 +39,6 @@
             <h1 id="hubTitleTr" lang="tr" hidden>Örnek analiz raporları</h1>
             <p class="reports-hub-sub" id="hubSubEn">Official PDF outputs (illustrative) with direct download and in-browser viewing.</p>
             <p class="reports-hub-sub" id="hubSubTr" lang="tr" hidden>Bu sayfa, örnek çıktı PDF belgelerine doğrudan indirme ve tarayıcı içi görüntüleme bağlantıları sunar.</p>
-            <button type="button" class="reports-thesis-trigger" id="openThesisModal">
-                <span id="thesisBtnEn">Download Thesis</span>
-                <span id="thesisBtnTr" lang="tr" hidden>Tezi İndir</span>
-            </button>
         </div>
 
         <div class="reports-cards">
